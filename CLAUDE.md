@@ -1,8 +1,34 @@
 # Instructions for Claude Code Sessions
 
+## First-Time Setup Check
+
+**CRITICAL: Check this FIRST before anything else:**
+
+```bash
+# Quick check: Does user's pattern directory exist?
+ls patterns/*/claude.key 2>/dev/null | grep -v examples
+```
+
+**If NO patterns directory with claude.key found:**
+- This is **FIRST-TIME SETUP**
+- **STOP HERE and run GETTING_STARTED.md**
+- Follow that guide step-by-step to set up:
+  - labs repository
+  - .env file with API keys
+  - upstream remote
+  - user's workspace
+  - identity key
+  - first pattern
+
+**If patterns directory found:**
+- User is already set up
+- Continue with Session Startup Sequence below
+
+---
+
 ## Session Startup Sequence
 
-**CRITICAL: Follow these steps IN ORDER on every session startup:**
+**Follow these steps IN ORDER on every session:**
 
 ### Step 1: Check for Upstream Updates
 
@@ -74,93 +100,29 @@ This requires:
 - **recipes/** (if cloned) contains example patterns - optional to update
 - Check approximately weekly, or when user encounters framework issues
 
-### Step 2: Detect User's Workspace
+### Step 2: Confirm User's Workspace
 
-**Use this procedure to reliably find the user's patterns folder:**
+**Detect the username from the workspace that exists:**
 
 ```bash
-# Method 1: Extract from fork's origin remote
-# Format: https://github.com/USERNAME/community-patterns.git
-# or: git@github.com:USERNAME/community-patterns.git
-ORIGIN_URL=$(git remote get-url origin 2>/dev/null)
+# Find the user's pattern directory (exclude examples)
+USER_DIR=$(ls -d patterns/*/ 2>/dev/null | grep -v "examples" | head -1)
+GITHUB_USER=$(basename "$USER_DIR")
 
-# Extract username from URL
-# For HTTPS: https://github.com/USERNAME/repo.git
-# For SSH: git@github.com:USERNAME/repo.git
-if [[ $ORIGIN_URL =~ github.com[:/]([^/]+)/ ]]; then
-    GITHUB_USER="${BASH_REMATCH[1]}"
-fi
-
-# Method 2: Fallback to git config
-if [ -z "$GITHUB_USER" ]; then
-    GITHUB_USER=$(git config user.name)
-fi
-
-# Method 3: Fallback to checking .git/config for fork info
-if [ -z "$GITHUB_USER" ]; then
-    # Parse .git/config for [remote "origin"] section
-    GITHUB_USER=$(git config --get remote.origin.url | sed -E 's/.*github\.com[:/]([^/]+)\/.*/\1/')
-fi
-
-# Method 4: Look for existing pattern directories (exclude examples)
-if [ -z "$GITHUB_USER" ]; then
-    # List directories in patterns/, exclude examples
-    ls -d patterns/*/ 2>/dev/null | grep -v "examples" | head -1 | xargs basename
-fi
-
-# Method 5: Ask the user
-if [ -z "$GITHUB_USER" ]; then
-    # Prompt: "I couldn't detect your GitHub username. What is it?"
-    # Then verify: ls patterns/$GITHUB_USER/
-fi
-
-# Verify workspace exists
-if [ -d "patterns/$GITHUB_USER" ]; then
-    echo "Found your workspace: patterns/$GITHUB_USER/"
-else
-    echo "Workspace not found. This appears to be first-time setup."
-fi
+# Confirm
+echo "Working in: patterns/$GITHUB_USER/"
 ```
 
-**Detection priority:**
-1. Extract from fork's `origin` remote URL (most reliable)
-2. Git config `user.name`
-3. Parse `.git/config` for remote info
-4. Look for existing directories in `patterns/`
-5. Ask the user directly
+**If multiple directories found or unclear:**
+- Check origin remote: `git remote get-url origin` (contains username in fork URL)
+- Ask user: "I see multiple pattern directories. Which is yours?"
 
-**Why origin remote is most reliable:**
-- User's fork URL always contains their username
-- Doesn't depend on local git config
-- Works even if user hasn't set git config
-- Format: `https://github.com/USERNAME/community-patterns.git`
+**Confirm with user:**
+```
+Ready to work! Your workspace: patterns/$GITHUB_USER/
 
-**If workspace doesn't exist (First-Time Setup):**
-
-1. Tell user: "Welcome! This appears to be your first session. Let me help you get set up."
-
-2. **Check prerequisites** (in order):
-   - [ ] Is `upstream` remote configured? If not: `git remote add upstream https://github.com/commontoolsinc/community-patterns.git`
-   - [ ] Does `~/Code/labs` exist? If not, guide cloning: `gh repo clone commontoolsinc/labs`
-   - [ ] Does `~/Code/labs/.env` exist? If not, guide creation (see GETTING_STARTED.md for template)
-   - [ ] Is dev server running? Check with user, help start if needed: `cd ~/Code/labs && deno task dev`
-   - [ ] Is Playwright MCP configured? Suggest setup if not (see GETTING_STARTED.md)
-
-3. **Create user's workspace:**
-   - Create `patterns/$GITHUB_USER/` directory
-   - Create identity key: `deno task -c ~/Code/labs/deno.json ct id new > patterns/$GITHUB_USER/claude.key`
-   - Create basic README.md
-   - Commit and push
-
-4. **Guide through first pattern** - Suggest starting with a simple counter or todo list
-
-5. **Reference GETTING_STARTED.md** for detailed setup information if needed
-
-**If workspace exists (Normal Development):**
-
-1. Tell user: "Ready to work! Your workspace: `patterns/$GITHUB_USER/`"
-2. Read and follow: **DEVELOPMENT.md**
-3. Proceed with normal development workflow
+What would you like to work on today?
+```
 
 ---
 
@@ -429,11 +391,12 @@ Covers:
 
 Every session:
 
+- [ ] **First**: Check if setup is complete (patterns/*/claude.key exists?)
+  - If NO → Run GETTING_STARTED.md
+  - If YES → Continue below
 - [ ] **Step 1**: Check and pull from upstream (this repo)
 - [ ] **Step 1.5**: Check if labs/recipes need updates (weekly)
-- [ ] **Step 2**: Detect user's workspace
-- [ ] **Route**: First-time → GETTING_STARTED.md, Existing → DEVELOPMENT.md
-- [ ] **Confirm**: Working directory is `patterns/$GITHUB_USER/`
+- [ ] **Step 2**: Confirm user's workspace (patterns/$GITHUB_USER/)
 - [ ] **Check**: Is dev server running? Remind to start if needed
 - [ ] **Check**: Is Playwright MCP available for testing?
 - [ ] **Ready**: Ask user what they want to work on
