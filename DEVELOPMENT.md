@@ -31,7 +31,7 @@ deno task dev
 
 **Terminal 2: Your Workspace**
 ```bash
-cd ~/Code/commontools-patterns
+cd ~/Code/community-patterns
 # Updates are checked automatically when you launch Claude Code
 ```
 
@@ -62,7 +62,7 @@ git push origin main
 
 **1. Create the file in your namespace:**
 ```bash
-cd ~/Code/commontools-patterns/patterns/YOUR-USERNAME
+cd ~/Code/community-patterns/patterns/YOUR-USERNAME
 touch my-pattern.tsx
 ```
 
@@ -106,7 +106,7 @@ export default pattern<MyPatternInput, MyPatternOutput>(
 **Check Syntax:**
 ```bash
 cd ~/Code/labs
-deno task ct dev ../commontools-patterns/patterns/YOUR-USERNAME/pattern.tsx --no-run
+deno task ct dev ../community-patterns/patterns/YOUR-USERNAME/pattern.tsx --no-run
 ```
 
 **Deploy to Test:**
@@ -114,9 +114,9 @@ deno task ct dev ../commontools-patterns/patterns/YOUR-USERNAME/pattern.tsx --no
 cd ~/Code/labs
 deno task ct charm new \
   --api-url http://localhost:8000 \
-  --identity ../commontools-patterns/claude.key \
+  --identity ../community-patterns/claude.key \
   --space test-space \
-  ../commontools-patterns/patterns/YOUR-USERNAME/pattern.tsx
+  ../community-patterns/patterns/YOUR-USERNAME/pattern.tsx
 ```
 
 **Update After Changes:**
@@ -124,10 +124,10 @@ deno task ct charm new \
 cd ~/Code/labs
 deno task ct charm setsrc \
   --api-url http://localhost:8000 \
-  --identity ../commontools-patterns/claude.key \
+  --identity ../community-patterns/claude.key \
   --space test-space \
   --charm CHARM-ID \
-  ../commontools-patterns/patterns/YOUR-USERNAME/pattern.tsx
+  ../community-patterns/patterns/YOUR-USERNAME/pattern.tsx
 ```
 
 **View in Browser:**
@@ -420,7 +420,7 @@ const addItem = handler<unknown, { items: Cell<OpaqueRef<Item>[]> }>(
 **Check**:
 1. Is dev server running? (`cd ~/Code/labs && deno task dev`)
 2. Syntax correct? Run `ct dev --no-run` first
-3. Correct paths? Should be `../commontools-patterns/patterns/YOUR-USERNAME/...`
+3. Correct paths? Should be `../community-patterns/patterns/YOUR-USERNAME/...`
 4. Identity key exists? `ls claude.key`
 
 ### Changes Not Showing
@@ -504,7 +504,7 @@ git push origin main
 
 # Create PR
 gh pr create \
-  --repo commontools-labs/commontools-patterns \
+  --repo commontoolsinc/community-patterns \
   --title "Add: shopping list pattern" \
   --body "Shopping list pattern with categories and filtering"
 ```
@@ -568,16 +568,16 @@ Deploy the main file - ct bundles dependencies automatically.
 ```bash
 # Test syntax
 cd ~/Code/labs
-deno task ct dev ../commontools-patterns/patterns/YOUR-USERNAME/pattern.tsx --no-run
+deno task ct dev ../community-patterns/patterns/YOUR-USERNAME/pattern.tsx --no-run
 
 # Deploy
-deno task ct charm new --api-url http://localhost:8000 --identity ../commontools-patterns/claude.key --space my-space ../commontools-patterns/patterns/YOUR-USERNAME/pattern.tsx
+deno task ct charm new --api-url http://localhost:8000 --identity ../community-patterns/claude.key --space my-space ../community-patterns/patterns/YOUR-USERNAME/pattern.tsx
 
 # Update
-deno task ct charm setsrc --api-url http://localhost:8000 --identity ../commontools-patterns/claude.key --space my-space --charm CHARM-ID ../commontools-patterns/patterns/YOUR-USERNAME/pattern.tsx
+deno task ct charm setsrc --api-url http://localhost:8000 --identity ../community-patterns/claude.key --space my-space --charm CHARM-ID ../community-patterns/patterns/YOUR-USERNAME/pattern.tsx
 
 # Inspect
-deno task ct charm inspect --api-url http://localhost:8000 --identity ../commontools-patterns/claude.key --space my-space --charm CHARM-ID
+deno task ct charm inspect --api-url http://localhost:8000 --identity ../community-patterns/claude.key --space my-space --charm CHARM-ID
 ```
 
 ### Git Commands

@@ -6,20 +6,20 @@ Welcome! This guide will help you set up your development environment for buildi
 
 **Brand new?** Here's the fastest path:
 
-1. **Fork the repo**: Visit [commontools-patterns](https://github.com/commontools-labs/commontools-patterns) → Click "Fork"
+1. **Fork the repo**: Visit [community-patterns](https://github.com/commontoolsinc/community-patterns) → Click "Fork"
 2. **Clone it**:
    ```bash
    cd ~/Code
-   gh repo clone YOUR-USERNAME/commontools-patterns
-   cd commontools-patterns
+   gh repo clone YOUR-USERNAME/community-patterns
+   cd community-patterns
    ```
 3. **Clone labs** (framework):
    ```bash
    cd ~/Code
-   gh repo clone commontools-labs/labs
+   gh repo clone commontoolsinc/labs
    ```
 4. **Start server**: `cd labs && deno task dev`
-5. **Launch Claude Code** in the `commontools-patterns` directory:
+5. **Launch Claude Code** in the `community-patterns` directory:
    ```
    Read CLAUDE.md and help me set up my workspace
    ```
@@ -86,7 +86,7 @@ You'll work with two repositories:
 ~/Code/
 ├── labs/                    # Framework (READ-ONLY)
 │   └── ...                  # Dev server runs here
-└── commontools-patterns/    # Your fork (WRITABLE)
+└── community-patterns/    # Your fork (WRITABLE)
     ├── CLAUDE.md
     ├── GETTING_STARTED.md
     └── patterns/
@@ -103,19 +103,19 @@ You'll work with two repositories:
 ```bash
 cd ~/Code
 
-# 1. Fork and clone commontools-patterns
-# Go to: https://github.com/commontools-labs/commontools-patterns
+# 1. Fork and clone community-patterns
+# Go to: https://github.com/commontoolsinc/community-patterns
 # Click "Fork" to create your fork
-gh repo clone YOUR-USERNAME/commontools-patterns
-cd commontools-patterns
+gh repo clone YOUR-USERNAME/community-patterns
+cd community-patterns
 
 # 2. Add upstream remote (to get updates)
-git remote add upstream https://github.com/commontools-labs/commontools-patterns.git
+git remote add upstream https://github.com/commontoolsinc/community-patterns.git
 git fetch upstream
 
 # 3. Clone labs (framework - READ ONLY)
 cd ~/Code
-gh repo clone commontools-labs/labs
+gh repo clone commontoolsinc/labs
 ```
 
 ---
@@ -212,7 +212,7 @@ After updating the config:
 ### Create Your Namespace
 
 ```bash
-cd ~/Code/commontools-patterns
+cd ~/Code/community-patterns
 
 # Create your directory (use your GitHub username)
 mkdir -p patterns/YOUR-USERNAME
@@ -230,7 +230,7 @@ Personal collection of Common Tools patterns.
 EOF
 
 # Commit and push
-cd ~/Code/commontools-patterns
+cd ~/Code/community-patterns
 git add patterns/YOUR-USERNAME/
 git commit -m "Create my pattern namespace"
 git push origin main
@@ -239,7 +239,7 @@ git push origin main
 ### Store Your Identity Key and Workspace Config
 
 ```bash
-cd ~/Code/commontools-patterns
+cd ~/Code/community-patterns
 
 # Create identity key for deploying patterns (at repo root)
 deno task -c ~/Code/labs/deno.json ct id new > claude.key
@@ -267,7 +267,7 @@ deno task dev
 # Leave running
 
 # Terminal 2: Your workspace
-cd ~/Code/commontools-patterns
+cd ~/Code/community-patterns
 
 # Launch Claude Code from here
 ```
@@ -277,7 +277,7 @@ cd ~/Code/commontools-patterns
 **1. Create a Pattern**
 
 ```bash
-cd ~/Code/commontools-patterns/patterns/YOUR-USERNAME
+cd ~/Code/community-patterns/patterns/YOUR-USERNAME
 # Create your pattern file: my-pattern.tsx
 ```
 
@@ -285,7 +285,7 @@ cd ~/Code/commontools-patterns/patterns/YOUR-USERNAME
 
 ```bash
 cd ~/Code/labs
-deno task ct dev ../commontools-patterns/patterns/YOUR-USERNAME/my-pattern.tsx --no-run
+deno task ct dev ../community-patterns/patterns/YOUR-USERNAME/my-pattern.tsx --no-run
 ```
 
 **3. Deploy Locally**
@@ -295,9 +295,9 @@ cd ~/Code/labs
 
 deno task ct charm new \
   --api-url http://localhost:8000 \
-  --identity ../commontools-patterns/claude.key \
+  --identity ../community-patterns/claude.key \
   --space my-space \
-  ../commontools-patterns/patterns/YOUR-USERNAME/my-pattern.tsx
+  ../community-patterns/patterns/YOUR-USERNAME/my-pattern.tsx
 
 # Note the charm ID from output
 ```
@@ -315,16 +315,16 @@ Open: `http://localhost:8000/my-space/CHARM-ID`
 cd ~/Code/labs
 deno task ct charm setsrc \
   --api-url http://localhost:8000 \
-  --identity ../commontools-patterns/claude.key \
+  --identity ../community-patterns/claude.key \
   --space my-space \
   --charm CHARM-ID \
-  ../commontools-patterns/patterns/YOUR-USERNAME/my-pattern.tsx
+  ../community-patterns/patterns/YOUR-USERNAME/my-pattern.tsx
 ```
 
 **6. Commit Your Work**
 
 ```bash
-cd ~/Code/commontools-patterns
+cd ~/Code/community-patterns
 
 git status
 git add patterns/YOUR-USERNAME/my-pattern.tsx
@@ -341,7 +341,7 @@ Let's build a simple counter:
 ### Step 1: Create the File
 
 ```bash
-cd ~/Code/commontools-patterns/patterns/YOUR-USERNAME
+cd ~/Code/community-patterns/patterns/YOUR-USERNAME
 touch counter.tsx
 ```
 
@@ -385,14 +385,14 @@ export default pattern<CounterInput, CounterOutput>(
 ```bash
 # Test syntax
 cd ~/Code/labs
-deno task ct dev ../commontools-patterns/patterns/YOUR-USERNAME/counter.tsx --no-run
+deno task ct dev ../community-patterns/patterns/YOUR-USERNAME/counter.tsx --no-run
 
 # Deploy
 deno task ct charm new \
   --api-url http://localhost:8000 \
-  --identity ../commontools-patterns/claude.key \
+  --identity ../community-patterns/claude.key \
   --space my-space \
-  ../commontools-patterns/patterns/YOUR-USERNAME/counter.tsx
+  ../community-patterns/patterns/YOUR-USERNAME/counter.tsx
 
 # Open in browser: http://localhost:8000/my-space/CHARM-ID
 ```
@@ -400,7 +400,7 @@ deno task ct charm new \
 ### Step 4: Commit
 
 ```bash
-cd ~/Code/commontools-patterns
+cd ~/Code/community-patterns
 git add patterns/YOUR-USERNAME/counter.tsx
 git commit -m "Add counter pattern"
 git push origin main
@@ -415,7 +415,7 @@ Congratulations! You've built your first pattern!
 ### Pull Latest Docs and Examples
 
 ```bash
-cd ~/Code/commontools-patterns
+cd ~/Code/community-patterns
 
 # Get updates from upstream
 git fetch upstream
@@ -437,7 +437,7 @@ This updates:
 ### Browse Other Patterns
 
 ```bash
-cd ~/Code/commontools-patterns/patterns
+cd ~/Code/community-patterns/patterns
 
 # See what others have built
 ls -la
@@ -477,7 +477,7 @@ git push origin main
 
 # Create PR
 gh pr create \
-  --repo commontools-labs/commontools-patterns \
+  --repo commontoolsinc/community-patterns \
   --title "Add shopping list pattern" \
   --body "New shopping list pattern with categories"
 ```
@@ -490,7 +490,7 @@ Your patterns will be reviewed and merged, making them available to everyone!
 
 ### Documentation
 
-In the `commontools-patterns` repo:
+In the `community-patterns` repo:
 - `CLAUDE.md` - Claude Code session guide
 - `GETTING_STARTED.md` - This guide
 - `patterns/examples/` - Working example patterns
@@ -514,7 +514,7 @@ Claude Code has access to all documentation:
 
 ```bash
 # Copy example to study
-cd ~/Code/commontools-patterns
+cd ~/Code/community-patterns
 cp patterns/examples/todo-list.tsx patterns/YOUR-USERNAME/study-todo.tsx
 
 # Ask Claude to explain it
@@ -549,10 +549,10 @@ git remote -v
 
 # Should show:
 # origin    (your fork)
-# upstream  (commontools-labs)
+# upstream  (commontoolsinc)
 
 # Add upstream if missing
-git remote add upstream https://github.com/commontools-labs/commontools-patterns.git
+git remote add upstream https://github.com/commontoolsinc/community-patterns.git
 ```
 
 ### Changes Not Showing in Browser
@@ -572,35 +572,35 @@ git remote add upstream https://github.com/commontools-labs/commontools-patterns
 cd ~/Code/labs && deno task dev
 
 # Your workspace (Terminal 2)
-cd ~/Code/commontools-patterns/patterns/YOUR-USERNAME
+cd ~/Code/community-patterns/patterns/YOUR-USERNAME
 
 # Test syntax
 cd ~/Code/labs
-deno task ct dev ../commontools-patterns/patterns/YOUR-USERNAME/PATTERN.tsx --no-run
+deno task ct dev ../community-patterns/patterns/YOUR-USERNAME/PATTERN.tsx --no-run
 
 # Deploy
 cd ~/Code/labs
 deno task ct charm new \
   --api-url http://localhost:8000 \
-  --identity ../commontools-patterns/claude.key \
+  --identity ../community-patterns/claude.key \
   --space my-space \
-  ../commontools-patterns/patterns/YOUR-USERNAME/PATTERN.tsx
+  ../community-patterns/patterns/YOUR-USERNAME/PATTERN.tsx
 
 # Update existing charm
 cd ~/Code/labs
 deno task ct charm setsrc \
   --api-url http://localhost:8000 \
-  --identity ../commontools-patterns/claude.key \
+  --identity ../community-patterns/claude.key \
   --space my-space \
   --charm CHARM-ID \
-  ../commontools-patterns/patterns/YOUR-USERNAME/PATTERN.tsx
+  ../community-patterns/patterns/YOUR-USERNAME/PATTERN.tsx
 ```
 
 ### Git Commands
 
 ```bash
 # Commit your work
-cd ~/Code/commontools-patterns
+cd ~/Code/community-patterns
 git add patterns/YOUR-USERNAME/
 git commit -m "Add new pattern"
 git push origin main
