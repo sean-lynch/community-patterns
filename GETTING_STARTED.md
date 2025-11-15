@@ -64,18 +64,24 @@ gh auth login
 
 ### Get API Keys
 
-You'll need API keys for AI features:
-
-**Anthropic API Key** (required):
+**Anthropic API Key** (REQUIRED):
 - Visit: https://console.anthropic.com/
 - Navigate to "API Keys" → Create new key
 - Save it securely
+- **This is the only required key to get started**
 
-**Jina AI API Key** (required for web reading):
+**Optional keys** (only needed for specific features):
+
+**Jina AI API Key** (optional - for web search in patterns):
 - Visit: https://jina.ai/
 - Sign up/login → Navigate to API Keys
 - Create new key
-- Save it securely
+- Only needed if your patterns use web search features
+
+**Google OAuth Credentials** (optional - for Gmail patterns):
+- Visit: https://console.cloud.google.com/apis/credentials
+- Create OAuth 2.0 Client ID
+- Only needed if you want to use patterns that import Gmail
 
 ---
 
@@ -138,21 +144,22 @@ LOG_LEVEL=info
 # Shell frontend URL for local development
 SHELL_URL=http://localhost:5173
 
-## Google OAuth Credentials (optional - for Google integrations)
-## Get these from: https://console.cloud.google.com/apis/credentials
-## Add redirect URI: http://localhost:8000/api/integrations/google-oauth/callback
-# GOOGLE_CLIENT_ID=your-client-id-here
-# GOOGLE_CLIENT_SECRET=your-client-secret-here
-
 ## OpenTelemetry Configuration (disabled for local dev)
 OTEL_ENABLED=false
 
-## AI LLM Provider API Keys
-# Add your Anthropic API key here to enable Claude models
+## REQUIRED: Anthropic API Key
+# Get from: https://console.anthropic.com/
 CTTS_AI_LLM_ANTHROPIC_API_KEY=sk-ant-xxxx-your-actual-key-here
 
-## Jina AI web reader API key
-JINA_API_KEY=jina_xxxx-your-actual-key-here
+## OPTIONAL: Jina AI web reader API key (only needed for web search in patterns)
+# Get from: https://jina.ai/
+# JINA_API_KEY=jina_xxxx-your-actual-key-here
+
+## OPTIONAL: Google OAuth Credentials (only needed for Gmail patterns)
+## Get from: https://console.cloud.google.com/apis/credentials
+## Add redirect URI: http://localhost:8000/api/integrations/google-oauth/callback
+# GOOGLE_CLIENT_ID=your-client-id-here
+# GOOGLE_CLIENT_SECRET=your-client-secret-here
 EOF
 
 chmod 600 .env
