@@ -7,8 +7,8 @@ A community-driven repository for sharing Common Tools patterns. Each developer 
 If you've already completed the first-time setup:
 
 ```bash
-cd ~/Code/community-patterns
-# Launch Claude Code here
+cd ~/Code/community-patterns  # Or wherever your Code repo is
+claude
 ```
 
 That's it! Claude auto-starts dev servers and guides you.
@@ -122,8 +122,8 @@ You should see a small "🔌" icon indicating MCP is connected.
 Now launch Claude Code and let it guide you through the rest:
 
 ```bash
-cd ~/Code/community-patterns
-# Launch Claude Code here
+cd ~/Code/community-patterns  # Or wherever your Code repo is
+claude
 ```
 
 Claude will help you:
