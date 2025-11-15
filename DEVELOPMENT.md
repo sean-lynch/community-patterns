@@ -114,7 +114,7 @@ deno task ct dev ../commontools-patterns/patterns/YOUR-USERNAME/pattern.tsx --no
 cd ~/Code/labs
 deno task ct charm new \
   --api-url http://localhost:8000 \
-  --identity ../commontools-patterns/patterns/YOUR-USERNAME/claude.key \
+  --identity ../commontools-patterns/claude.key \
   --space test-space \
   ../commontools-patterns/patterns/YOUR-USERNAME/pattern.tsx
 ```
@@ -124,7 +124,7 @@ deno task ct charm new \
 cd ~/Code/labs
 deno task ct charm setsrc \
   --api-url http://localhost:8000 \
-  --identity ../commontools-patterns/patterns/YOUR-USERNAME/claude.key \
+  --identity ../commontools-patterns/claude.key \
   --space test-space \
   --charm CHARM-ID \
   ../commontools-patterns/patterns/YOUR-USERNAME/pattern.tsx
@@ -144,7 +144,6 @@ http://localhost:8000/test-space/CHARM-ID
 ```
 patterns/YOUR-USERNAME/
 ├── README.md              # Your notes and pattern index
-├── claude.key             # Identity key (gitignored)
 ├── WIP/                   # Work-in-progress patterns
 │   ├── feature-x.tsx      # Actively developing
 │   └── experiment-y.tsx   # Testing ideas
@@ -154,6 +153,8 @@ patterns/YOUR-USERNAME/
 ├── todo-list.tsx          # Your stable patterns
 ├── notes-app.tsx
 └── image-gallery.tsx
+
+Note: claude.key is at repo root, not in your pattern directory
 ```
 
 **Folder conventions:**
@@ -420,7 +421,7 @@ const addItem = handler<unknown, { items: Cell<OpaqueRef<Item>[]> }>(
 1. Is dev server running? (`cd ~/Code/labs && deno task dev`)
 2. Syntax correct? Run `ct dev --no-run` first
 3. Correct paths? Should be `../commontools-patterns/patterns/YOUR-USERNAME/...`
-4. Identity key exists? `ls patterns/YOUR-USERNAME/claude.key`
+4. Identity key exists? `ls claude.key`
 
 ### Changes Not Showing
 
@@ -570,13 +571,13 @@ cd ~/Code/labs
 deno task ct dev ../commontools-patterns/patterns/YOUR-USERNAME/pattern.tsx --no-run
 
 # Deploy
-deno task ct charm new --api-url http://localhost:8000 --identity ../commontools-patterns/patterns/YOUR-USERNAME/claude.key --space my-space ../commontools-patterns/patterns/YOUR-USERNAME/pattern.tsx
+deno task ct charm new --api-url http://localhost:8000 --identity ../commontools-patterns/claude.key --space my-space ../commontools-patterns/patterns/YOUR-USERNAME/pattern.tsx
 
 # Update
-deno task ct charm setsrc --api-url http://localhost:8000 --identity ../commontools-patterns/patterns/YOUR-USERNAME/claude.key --space my-space --charm CHARM-ID ../commontools-patterns/patterns/YOUR-USERNAME/pattern.tsx
+deno task ct charm setsrc --api-url http://localhost:8000 --identity ../commontools-patterns/claude.key --space my-space --charm CHARM-ID ../commontools-patterns/patterns/YOUR-USERNAME/pattern.tsx
 
 # Inspect
-deno task ct charm inspect --api-url http://localhost:8000 --identity ../commontools-patterns/patterns/YOUR-USERNAME/claude.key --space my-space --charm CHARM-ID
+deno task ct charm inspect --api-url http://localhost:8000 --identity ../commontools-patterns/claude.key --space my-space --charm CHARM-ID
 ```
 
 ### Git Commands

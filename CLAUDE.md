@@ -5,11 +5,11 @@
 **CRITICAL: Check this FIRST before anything else:**
 
 ```bash
-# Quick check: Does user's pattern directory exist?
-ls patterns/*/claude.key 2>/dev/null | grep -v examples
+# Quick check: Does workspace config exist?
+test -f .claude-workspace && echo "Setup complete" || echo "First-time setup needed"
 ```
 
-**If NO patterns directory with claude.key found:**
+**If "First-time setup needed":**
 - This is **FIRST-TIME SETUP**
 - **STOP HERE and run GETTING_STARTED.md**
 - Follow that guide step-by-step to set up:
@@ -17,11 +17,13 @@ ls patterns/*/claude.key 2>/dev/null | grep -v examples
   - .env file with API keys
   - upstream remote
   - user's workspace
-  - identity key
+  - identity key (claude.key at repo root)
+  - workspace config file (.claude-workspace)
   - first pattern
 
-**If patterns directory found:**
+**If "Setup complete":**
 - User is already set up
+- Load workspace config (see Step 2)
 - Continue with Session Startup Sequence below
 
 ---
@@ -100,22 +102,41 @@ This requires:
 - **recipes/** (if cloned) contains example patterns - optional to update
 - Check approximately weekly, or when user encounters framework issues
 
-### Step 2: Confirm User's Workspace
+### Step 2: Load Workspace Configuration
 
-**Detect the username from the workspace that exists:**
+**Why we need this:** Your GitHub username is used for:
+- Determining which `patterns/$GITHUB_USER/` directory is yours
+- Committing patterns with proper attribution
+- Deploying patterns with your identity key
+- Keeping your work isolated from other users
+
+**Load cached configuration:**
 
 ```bash
-# Find the user's pattern directory (exclude examples)
-USER_DIR=$(ls -d patterns/*/ 2>/dev/null | grep -v "examples" | head -1)
-GITHUB_USER=$(basename "$USER_DIR")
-
-# Confirm
-echo "Working in: patterns/$GITHUB_USER/"
+# Read workspace config (created during first-time setup)
+if [ -f .claude-workspace ]; then
+  GITHUB_USER=$(grep "^username=" .claude-workspace | cut -d= -f2)
+  echo "Loaded workspace: patterns/$GITHUB_USER/"
+else
+  echo "ERROR: .claude-workspace not found - run GETTING_STARTED.md first"
+  exit 1
+fi
 ```
 
-**If multiple directories found or unclear:**
-- Check origin remote: `git remote get-url origin` (contains username in fork URL)
-- Ask user: "I see multiple pattern directories. Which is yours?"
+**If .claude-workspace doesn't exist** (shouldn't happen after setup):
+```bash
+# Detect from origin remote URL (most reliable)
+ORIGIN_URL=$(git remote get-url origin)
+GITHUB_USER=$(echo "$ORIGIN_URL" | sed -E 's/.*[:/]([^/]+)\/community-patterns.*/\1/')
+
+# Create workspace config file
+cat > .claude-workspace << EOF
+username=$GITHUB_USER
+setup_complete=true
+EOF
+
+echo "Created .claude-workspace for: $GITHUB_USER"
+```
 
 **Confirm with user:**
 ```
@@ -130,6 +151,8 @@ What would you like to work on today?
 
 ```
 community-patterns/        # THIS REPO (user's fork)
+├── .claude-workspace      # Workspace config: username, setup status (gitignored)
+├── claude.key             # Identity key for deploying patterns (gitignored)
 ├── CLAUDE.md              # This file - Claude's instructions
 ├── GETTING_STARTED.md     # First-time setup guide
 ├── DEVELOPMENT.md         # Normal development workflows
@@ -139,7 +162,6 @@ community-patterns/        # THIS REPO (user's fork)
     ├── alice/, bob/, ...  # Other users (READ-ONLY)
     └── $GITHUB_USER/      # USER's workspace (WRITABLE)
         ├── README.md      # Optional: user's notes
-        ├── claude.key     # Identity key (gitignored)
         ├── WIP/           # Work-in-progress patterns
         │   └── *.tsx      # Patterns under active development
         ├── lib/           # Copied upstream patterns (NO MODIFICATIONS)
@@ -174,7 +196,6 @@ community-patterns/        # THIS REPO (user's fork)
 ```
 patterns/alice/
 ├── README.md
-├── claude.key
 ├── WIP/
 │   ├── experimental-ai-chat.tsx
 │   └── testing-new-feature.tsx
@@ -204,7 +225,7 @@ patterns/alice/
 ❌ **Never modify other users' patterns** (`patterns/alice/`, etc.)
 ❌ **Never modify example patterns** (`patterns/examples/`)
 ❌ **Never modify root docs** (CLAUDE.md, etc.) unless user explicitly asks
-❌ **Never commit identity keys** (claude.key - gitignored)
+❌ **Never commit identity keys** (claude.key, .claude-workspace - both gitignored)
 ❌ **Never work outside user's namespace** without permission
 
 ### Working with labs Repository
@@ -219,8 +240,9 @@ patterns/alice/
 
 | Purpose | Path |
 |---------|------|
+| Workspace config | `.claude-workspace` |
+| Identity key | `claude.key` |
 | User's workspace | `patterns/$GITHUB_USER/` |
-| Identity key | `patterns/$GITHUB_USER/claude.key` |
 | Example patterns | `patterns/examples/` |
 | Development guide | `DEVELOPMENT.md` |
 | Setup guide | `GETTING_STARTED.md` |
@@ -244,7 +266,7 @@ deno task ct dev ../community-patterns/patterns/$GITHUB_USER/pattern.tsx --no-ru
 cd ~/Code/labs
 deno task ct charm new \
   --api-url http://localhost:8000 \
-  --identity ../community-patterns/patterns/$GITHUB_USER/claude.key \
+  --identity ../community-patterns/claude.key \
   --space my-space \
   ../community-patterns/patterns/$GITHUB_USER/pattern.tsx
 ```
@@ -255,7 +277,7 @@ deno task ct charm new \
 cd ~/Code/labs
 deno task ct charm setsrc \
   --api-url http://localhost:8000 \
-  --identity ../community-patterns/patterns/$GITHUB_USER/claude.key \
+  --identity ../community-patterns/claude.key \
   --space my-space \
   --charm CHARM-ID \
   ../community-patterns/patterns/$GITHUB_USER/pattern.tsx

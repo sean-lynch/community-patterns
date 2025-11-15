@@ -236,16 +236,22 @@ git commit -m "Create my pattern namespace"
 git push origin main
 ```
 
-### Store Your Identity Key
+### Store Your Identity Key and Workspace Config
 
 ```bash
-cd ~/Code/commontools-patterns/patterns/YOUR-USERNAME
+cd ~/Code/commontools-patterns
 
-# Create identity key for deploying patterns
+# Create identity key for deploying patterns (at repo root)
 deno task -c ~/Code/labs/deno.json ct id new > claude.key
 chmod 600 claude.key
 
-# This file is gitignored - never committed
+# Create workspace config file
+cat > .claude-workspace << 'EOF'
+username=YOUR-USERNAME
+setup_complete=true
+EOF
+
+# Both files are gitignored - never committed
 ```
 
 ---
@@ -289,7 +295,7 @@ cd ~/Code/labs
 
 deno task ct charm new \
   --api-url http://localhost:8000 \
-  --identity ../commontools-patterns/patterns/YOUR-USERNAME/claude.key \
+  --identity ../commontools-patterns/claude.key \
   --space my-space \
   ../commontools-patterns/patterns/YOUR-USERNAME/my-pattern.tsx
 
@@ -309,7 +315,7 @@ Open: `http://localhost:8000/my-space/CHARM-ID`
 cd ~/Code/labs
 deno task ct charm setsrc \
   --api-url http://localhost:8000 \
-  --identity ../commontools-patterns/patterns/YOUR-USERNAME/claude.key \
+  --identity ../commontools-patterns/claude.key \
   --space my-space \
   --charm CHARM-ID \
   ../commontools-patterns/patterns/YOUR-USERNAME/my-pattern.tsx
@@ -384,7 +390,7 @@ deno task ct dev ../commontools-patterns/patterns/YOUR-USERNAME/counter.tsx --no
 # Deploy
 deno task ct charm new \
   --api-url http://localhost:8000 \
-  --identity ../commontools-patterns/patterns/YOUR-USERNAME/claude.key \
+  --identity ../commontools-patterns/claude.key \
   --space my-space \
   ../commontools-patterns/patterns/YOUR-USERNAME/counter.tsx
 
@@ -533,7 +539,7 @@ PORT=8001 deno task dev
 
 1. Is dev server running?
 2. Check syntax: `ct dev pattern.tsx --no-run`
-3. Verify identity key exists: `ls patterns/YOUR-USERNAME/claude.key`
+3. Verify identity key exists: `ls claude.key`
 
 ### Can't Pull from Upstream
 
@@ -576,7 +582,7 @@ deno task ct dev ../commontools-patterns/patterns/YOUR-USERNAME/PATTERN.tsx --no
 cd ~/Code/labs
 deno task ct charm new \
   --api-url http://localhost:8000 \
-  --identity ../commontools-patterns/patterns/YOUR-USERNAME/claude.key \
+  --identity ../commontools-patterns/claude.key \
   --space my-space \
   ../commontools-patterns/patterns/YOUR-USERNAME/PATTERN.tsx
 
@@ -584,7 +590,7 @@ deno task ct charm new \
 cd ~/Code/labs
 deno task ct charm setsrc \
   --api-url http://localhost:8000 \
-  --identity ../commontools-patterns/patterns/YOUR-USERNAME/claude.key \
+  --identity ../commontools-patterns/claude.key \
   --space my-space \
   --charm CHARM-ID \
   ../commontools-patterns/patterns/YOUR-USERNAME/PATTERN.tsx

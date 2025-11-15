@@ -1,3 +1,6 @@
+# Workspace config (never commit!)
+.claude-workspace
+
 # Identity keys (never commit!)
 *.key
 claude.key
