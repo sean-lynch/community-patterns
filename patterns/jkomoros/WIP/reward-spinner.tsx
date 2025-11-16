@@ -18,25 +18,25 @@ const prizeOptions = [
 ] as const;
 
 interface SpinnerInput {
-  currentEmoji: Default<string, "🎁">;
-  isSpinning: Default<boolean, false>;
+  currentEmoji: Cell<Default<string, "🎁">>;
+  isSpinning: Cell<Default<boolean, false>>;
   // Generosity level: 0 = lots of candy (5% hugs), 10 = mostly hugs (99%)
-  generosity: Default<number, 0>;
+  generosity: Cell<Default<number, 0>>;
   // Sequence of emojis for slot machine animation
-  spinSequence: Default<string[], []>;
+  spinSequence: Cell<Default<string[], []>>;
   // Counter to force animation restart
-  spinCount: Default<number, 0>;
+  spinCount: Cell<Default<number, 0>>;
   // Show payout visualization
-  showPayouts: Default<boolean, false>;
+  showPayouts: Cell<Default<boolean, false>>;
 }
 
 interface SpinnerOutput {
-  currentEmoji: Default<string, "🎁">;
-  isSpinning: Default<boolean, false>;
-  generosity: Default<number, 0>;
-  spinSequence: Default<string[], []>;
-  spinCount: Default<number, 0>;
-  showPayouts: Default<boolean, false>;
+  currentEmoji: Cell<Default<string, "🎁">>;
+  isSpinning: Cell<Default<boolean, false>>;
+  generosity: Cell<Default<number, 0>>;
+  spinSequence: Cell<Default<string[], []>>;
+  spinCount: Cell<Default<number, 0>>;
+  showPayouts: Cell<Default<boolean, false>>;
 }
 
 const spin = handler<
@@ -143,22 +143,23 @@ const closePayouts = handler<
 );
 
 export default recipe<SpinnerInput, SpinnerOutput>(
+  "Reward Spinner",
   ({ currentEmoji, isSpinning, generosity, spinSequence, spinCount, showPayouts }) => {
     // Compute the TADA emoji display from generosity level (0-10 emojis, one per level)
     const tadaDisplay = computed(() =>
-      "🎉".repeat(generosity)
+      "🎉".repeat(generosity.get())
     );
 
     // Compute whether buttons should be disabled
-    const minusDisabled = computed(() => generosity <= 0);
-    const plusDisabled = computed(() => generosity >= 10);
+    const minusDisabled = computed(() => generosity.get() <= 0);
+    const plusDisabled = computed(() => generosity.get() >= 10);
 
     // Check if spinCount is even or odd to alternate animations
-    const isEvenSpin = computed(() => spinCount % 2 === 0);
+    const isEvenSpin = computed(() => spinCount.get() % 2 === 0);
 
     // Calculate payout percentages
     const payoutPercentages = computed(() => {
-      const gen = generosity;
+      const gen = generosity.get();
       const hugWeight = 11 - gen;
       const candyWeight = 1 + (gen * 10);
       const weightThreeBeans = candyWeight * 0.45;
@@ -171,6 +172,9 @@ export default recipe<SpinnerInput, SpinnerOutput>(
         { emoji: "🤗", percent: (hugWeight / totalWeight) * 100 },
       ];
     });
+
+    // Check if current emoji is three candies (for special rendering)
+    const isThreeCandies = computed(() => currentEmoji.get() === "🍬🍬🍬");
 
     return {
       [NAME]: str`Reward Spinner`,
@@ -201,7 +205,7 @@ export default recipe<SpinnerInput, SpinnerOutput>(
               maskImage: "linear-gradient(to bottom, transparent 0%, black 30%, black 70%, transparent 100%)",
             }}
           >
-            {spinSequence.length > 0 ? (
+            {spinSequence.get().length > 0 ? (
               isEvenSpin ? (
                 // Animated sequence (even spins)
                 <div
@@ -361,7 +365,7 @@ export default recipe<SpinnerInput, SpinnerOutput>(
                   position: "relative",
                 }}
               >
-                {currentEmoji === "🍬🍬🍬" ? (
+                {isThreeCandies ? (
                   <>
                     {/* Left candy - behind and up-left */}
                     <span style={{
