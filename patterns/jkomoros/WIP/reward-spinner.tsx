@@ -124,14 +124,17 @@ const incrementGenerosity = handler<
 
 export default recipe<SpinnerInput, SpinnerOutput>(
   ({ currentEmoji, isSpinning, generosity, spinSequence, spinCount }) => {
-    // Compute the TADA emoji display from generosity level (0-5 emojis for 0-10 range)
+    // Compute the TADA emoji display from generosity level (0-10 emojis, one per level)
     const tadaDisplay = computed(() =>
-      "🎉".repeat(Math.floor(generosity / 2))
+      "🎉".repeat(generosity)
     );
 
     // Compute whether buttons should be disabled
     const minusDisabled = computed(() => generosity <= 0);
     const plusDisabled = computed(() => generosity >= 10);
+
+    // Check if spinCount is even or odd to alternate animations
+    const isEvenSpin = computed(() => spinCount % 2 === 0);
 
     return {
       [NAME]: str`Reward Spinner`,
@@ -162,37 +165,73 @@ export default recipe<SpinnerInput, SpinnerOutput>(
             }}
           >
             {spinSequence.length > 0 ? (
-              // Animated sequence
-              <div
-                style={{
-                  display: "flex",
-                  flexDirection: "column",
-                  alignItems: "center",
-                  animation: "slotSpin 2s cubic-bezier(0.25, 0.1, 0.25, 1)",
-                  animationFillMode: "forwards",
-                  position: "absolute",
-                  top: "0",
-                  left: "0",
-                  width: "100%",
-                }}
-              >
-                {spinSequence.map((emoji, index) => (
-                  <div
-                    key={index}
-                    style={{
-                      fontSize: "200px",
-                      lineHeight: "1",
-                      height: "250px",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      width: "100%",
-                    }}
-                  >
-                    {emoji}
-                  </div>
-                ))}
-              </div>
+              isEvenSpin ? (
+                // Animated sequence (even spins)
+                <div
+                  style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "center",
+                    animation: "slotSpin1 2s cubic-bezier(0.25, 0.1, 0.25, 1)",
+                    animationFillMode: "forwards",
+                    position: "absolute",
+                    top: "0",
+                    left: "0",
+                    width: "100%",
+                  }}
+                >
+                  {spinSequence.map((emoji, index) => (
+                    <div
+                      key={index}
+                      style={{
+                        fontSize: "200px",
+                        lineHeight: "250px",
+                        height: "250px",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        width: "100%",
+                        flexShrink: "0",
+                      }}
+                    >
+                      {emoji}
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                // Animated sequence (odd spins)
+                <div
+                  style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "center",
+                    animation: "slotSpin2 2s cubic-bezier(0.25, 0.1, 0.25, 1)",
+                    animationFillMode: "forwards",
+                    position: "absolute",
+                    top: "0",
+                    left: "0",
+                    width: "100%",
+                  }}
+                >
+                  {spinSequence.map((emoji, index) => (
+                    <div
+                      key={index}
+                      style={{
+                        fontSize: "200px",
+                        lineHeight: "250px",
+                        height: "250px",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        width: "100%",
+                        flexShrink: "0",
+                      }}
+                    >
+                      {emoji}
+                    </div>
+                  ))}
+                </div>
+              )
             ) : (
               // Initial static display
               <div
@@ -210,9 +249,17 @@ export default recipe<SpinnerInput, SpinnerOutput>(
             )}
           </div>
 
-          {/* CSS Animation */}
+          {/* CSS Animations */}
           <style>{`
-            @keyframes slotSpin {
+            @keyframes slotSpin1 {
+              0% {
+                transform: translateY(0);
+              }
+              100% {
+                transform: translateY(-3500px);
+              }
+            }
+            @keyframes slotSpin2 {
               0% {
                 transform: translateY(0);
               }
@@ -260,7 +307,7 @@ export default recipe<SpinnerInput, SpinnerOutput>(
             }}
           >
             {/* Visual readout: TADA emojis based on generosity level */}
-            <div style={{ fontSize: "14px", minHeight: "18px" }}>
+            <div style={{ fontSize: "12px", minHeight: "16px", lineHeight: "1" }}>
               {tadaDisplay}
             </div>
 
