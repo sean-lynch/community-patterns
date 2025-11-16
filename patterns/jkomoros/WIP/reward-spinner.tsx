@@ -48,10 +48,10 @@ const spin = handler<
 >(
   (_, { currentEmoji, isSpinning, generosity, spinSequence, spinCount }) => {
     // Convert generosity (0-10) to weights
-    // At 0: mostly candy (5% hugs), At 10: mostly hugs (99%)
+    // At 0: mostly hugs (99%), At 10: mostly candy (99%)
     const gen = generosity.get();
-    const hugWeight = 1 + (gen * 10); // 1 to 101
-    const candyWeight = 11 - gen; // 11 to 1
+    const hugWeight = 11 - gen; // 11 to 1 (high gen = few hugs)
+    const candyWeight = 1 + (gen * 10); // 1 to 101 (high gen = lots of candy)
 
     // Split candy between 3 beans and 1 bean
     const weightThreeBeans = candyWeight * 0.45;
@@ -192,6 +192,7 @@ export default recipe<SpinnerInput, SpinnerOutput>(
                         justifyContent: "center",
                         width: "100%",
                         flexShrink: "0",
+                        whiteSpace: "nowrap",
                       }}
                     >
                       {emoji}
@@ -225,6 +226,7 @@ export default recipe<SpinnerInput, SpinnerOutput>(
                         justifyContent: "center",
                         width: "100%",
                         flexShrink: "0",
+                        whiteSpace: "nowrap",
                       }}
                     >
                       {emoji}
@@ -242,6 +244,7 @@ export default recipe<SpinnerInput, SpinnerOutput>(
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
+                  whiteSpace: "nowrap",
                 }}
               >
                 {currentEmoji}
