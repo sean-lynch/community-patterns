@@ -452,7 +452,15 @@ export default recipe<SpinnerInput, SpinnerOutput>(
               }}
             >
               {Array.from({ length: 20 }, (_, i) => {
-                const angle = (i / 20) * 360;
+                // Add randomness to angle (±20 degrees), distance (200-400px), and rotation (540-900 degrees)
+                const baseAngle = (i / 20) * 360;
+                const angleVariation = (Math.random() - 0.5) * 40;
+                const angle = baseAngle + angleVariation;
+                const distance = 200 + Math.random() * 200;
+                const rotation = 540 + Math.random() * 360;
+                const scale = 1 + Math.random() * 1;
+                const duration = 1.5 + Math.random() * 1;
+
                 return (
                   <div
                     key={i}
@@ -461,15 +469,43 @@ export default recipe<SpinnerInput, SpinnerOutput>(
                       left: "0",
                       top: "0",
                       fontSize: "40px",
-                      animation: `sparkleBurst 2s ease-out forwards`,
-                      animationDelay: `${i * 0.02}s`,
-                      transform: `rotate(${angle}deg)`,
+                      animation: `sparkleBurst${i} ${duration}s ease-out forwards`,
+                      animationDelay: `${i * 0.03 + Math.random() * 0.1}s`,
                     }}
                   >
                     ✨
                   </div>
                 );
               })}
+              <style>{`
+                ${Array.from({ length: 20 }, (_, i) => {
+                  const baseAngle = (i / 20) * 360;
+                  const angleVariation = (Math.random() - 0.5) * 40;
+                  const angle = baseAngle + angleVariation;
+                  const distance = 200 + Math.random() * 200;
+                  const rotation = 540 + Math.random() * 360;
+                  const scale = 1 + Math.random() * 1;
+
+                  return `
+                    @keyframes sparkleBurst${i} {
+                      0% {
+                        transform: translate(0, 0) rotate(0deg) scale(0);
+                        opacity: 1;
+                      }
+                      50% {
+                        opacity: 1;
+                      }
+                      100% {
+                        transform: translate(
+                          ${Math.cos(angle * Math.PI / 180) * distance}px,
+                          ${Math.sin(angle * Math.PI / 180) * distance}px
+                        ) rotate(${rotation}deg) scale(${scale});
+                        opacity: 0;
+                      }
+                    }
+                  `;
+                }).join('')}
+              `}</style>
             </div>
           ) : null}
 
@@ -499,19 +535,6 @@ export default recipe<SpinnerInput, SpinnerOutput>(
               100% {
                 transform: translateY(0);
                 opacity: 1;
-              }
-            }
-            @keyframes sparkleBurst {
-              0% {
-                transform: translate(0, 0) rotate(0deg) scale(0);
-                opacity: 1;
-              }
-              50% {
-                opacity: 1;
-              }
-              100% {
-                transform: translate(0, -300px) rotate(720deg) scale(1.5);
-                opacity: 0;
               }
             }
           `}</style>
