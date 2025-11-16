@@ -103,6 +103,10 @@ export default recipe<SpinnerInput, SpinnerOutput>(
       "🎉".repeat(Math.floor(generosity / 2))
     );
 
+    // Compute whether buttons should be disabled
+    const minusDisabled = computed(() => generosity <= 0);
+    const plusDisabled = computed(() => generosity >= 10);
+
     return {
       [NAME]: str`Reward Spinner`,
       [UI]: (
@@ -178,26 +182,30 @@ export default recipe<SpinnerInput, SpinnerOutput>(
             <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
               <button
                 onClick={decrementGenerosity({ generosity })}
+                disabled={minusDisabled}
                 style={{
                   fontSize: "14px",
                   padding: "2px 8px",
                   border: "1px solid #e2e8f0",
                   borderRadius: "2px",
                   background: "white",
-                  cursor: "pointer",
+                  cursor: minusDisabled ? "not-allowed" : "pointer",
+                  opacity: minusDisabled ? 0.5 : 1,
                 }}
               >
                 −
               </button>
               <button
                 onClick={incrementGenerosity({ generosity })}
+                disabled={plusDisabled}
                 style={{
                   fontSize: "14px",
                   padding: "2px 8px",
                   border: "1px solid #e2e8f0",
                   borderRadius: "2px",
                   background: "white",
-                  cursor: "pointer",
+                  cursor: plusDisabled ? "not-allowed" : "pointer",
+                  opacity: plusDisabled ? 0.5 : 1,
                 }}
               >
                 +
