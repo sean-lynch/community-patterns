@@ -22,12 +22,18 @@ interface SpinnerInput {
   isSpinning: Default<boolean, false>;
   // Generosity level: 0 = lots of candy (5% hugs), 10 = mostly hugs (99%)
   generosity: Default<number, 0>;
+  // Sequence of emojis for slot machine animation
+  spinSequence: Default<string[], []>;
+  // Counter to force animation restart
+  spinCount: Default<number, 0>;
 }
 
 interface SpinnerOutput {
   currentEmoji: Default<string, "🎁">;
   isSpinning: Default<boolean, false>;
   generosity: Default<number, 0>;
+  spinSequence: Default<string[], []>;
+  spinCount: Default<number, 0>;
 }
 
 const spin = handler<
@@ -36,9 +42,11 @@ const spin = handler<
     currentEmoji: Cell<string>;
     isSpinning: Cell<boolean>;
     generosity: Cell<number>;
+    spinSequence: Cell<string[]>;
+    spinCount: Cell<number>;
   }
 >(
-  (_, { currentEmoji, isSpinning, generosity }) => {
+  (_, { currentEmoji, isSpinning, generosity, spinSequence, spinCount }) => {
     // Convert generosity (0-10) to weights
     // At 0: mostly candy (5% hugs), At 10: mostly hugs (99%)
     const gen = generosity.get();
@@ -71,8 +79,26 @@ const spin = handler<
 
     const finalEmoji = prizeOptions[selectedIndex].emoji;
 
-    // Show the result immediately (no animation for now - setTimeout doesn't work with framework)
+    // Update the final emoji first
     currentEmoji.set(finalEmoji);
+
+    // Build slot machine sequence: random items, then final result at the end
+    // Total of 15 items, with final result at position 14 (will be visible after animation)
+    const sequence: string[] = [];
+    for (let i = 0; i < 15; i++) {
+      if (i === 14) {
+        // Final result at the last position
+        sequence.push(finalEmoji);
+      } else {
+        // Random prize
+        const randomPrize = prizeOptions[Math.floor(Math.random() * prizeOptions.length)];
+        sequence.push(randomPrize.emoji);
+      }
+    }
+
+    // Set the sequence to trigger animation
+    spinSequence.set(sequence);
+    spinCount.set(spinCount.get() + 1);
   }
 );
 
@@ -97,7 +123,7 @@ const incrementGenerosity = handler<
 );
 
 export default recipe<SpinnerInput, SpinnerOutput>(
-  ({ currentEmoji, isSpinning, generosity }) => {
+  ({ currentEmoji, isSpinning, generosity, spinSequence, spinCount }) => {
     // Compute the TADA emoji display from generosity level (0-5 emojis for 0-10 range)
     const tadaDisplay = computed(() =>
       "🎉".repeat(Math.floor(generosity / 2))
@@ -123,20 +149,78 @@ export default recipe<SpinnerInput, SpinnerOutput>(
             gap: "40px",
           }}
         >
-          {/* Big Emoji Display */}
+          {/* Slot Machine Display */}
           <div
             style={{
-              fontSize: "200px",
-              lineHeight: "1",
-              textAlign: "center",
-              minHeight: "200px",
+              width: "300px",
+              height: "250px",
+              overflow: "hidden",
+              position: "relative",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
             }}
           >
-            {currentEmoji}
+            {spinSequence.length > 0 ? (
+              // Animated sequence
+              <div
+                style={{
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "center",
+                  animation: "slotSpin 2s cubic-bezier(0.25, 0.1, 0.25, 1)",
+                  animationFillMode: "forwards",
+                  position: "absolute",
+                  top: "0",
+                  left: "0",
+                  width: "100%",
+                }}
+              >
+                {spinSequence.map((emoji, index) => (
+                  <div
+                    key={index}
+                    style={{
+                      fontSize: "200px",
+                      lineHeight: "1",
+                      height: "250px",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      width: "100%",
+                    }}
+                  >
+                    {emoji}
+                  </div>
+                ))}
+              </div>
+            ) : (
+              // Initial static display
+              <div
+                style={{
+                  fontSize: "200px",
+                  lineHeight: "1",
+                  height: "250px",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+              >
+                {currentEmoji}
+              </div>
+            )}
           </div>
+
+          {/* CSS Animation */}
+          <style>{`
+            @keyframes slotSpin {
+              0% {
+                transform: translateY(0);
+              }
+              100% {
+                transform: translateY(-3500px);
+              }
+            }
+          `}</style>
 
           {/* Spin Button */}
           <ct-button
@@ -144,6 +228,8 @@ export default recipe<SpinnerInput, SpinnerOutput>(
               currentEmoji,
               isSpinning,
               generosity,
+              spinSequence,
+              spinCount,
             })}
             style={{
               fontSize: "48px",
@@ -217,6 +303,8 @@ export default recipe<SpinnerInput, SpinnerOutput>(
       currentEmoji,
       isSpinning,
       generosity,
+      spinSequence,
+      spinCount,
     };
   }
 );
