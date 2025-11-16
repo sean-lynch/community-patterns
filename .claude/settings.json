@@ -1,6 +1,6 @@
 {
   "permissions": {
-    "allow": [
+    "allowedTools": [
       "Read",
       "Grep",
       "Glob",
