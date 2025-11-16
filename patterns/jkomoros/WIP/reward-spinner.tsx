@@ -133,6 +133,15 @@ const incrementGenerosity = handler<
   }
 );
 
+const closePayouts = handler<
+  unknown,
+  { showPayouts: Cell<boolean> }
+>(
+  (_, { showPayouts }) => {
+    showPayouts.set(false);
+  }
+);
+
 export default recipe<SpinnerInput, SpinnerOutput>(
   ({ currentEmoji, isSpinning, generosity, spinSequence, spinCount, showPayouts }) => {
     // Compute the TADA emoji display from generosity level (0-10 emojis, one per level)
@@ -471,8 +480,34 @@ export default recipe<SpinnerInput, SpinnerOutput>(
                   gap: "3px",
                   marginBottom: "6px",
                   animation: "slideUp 0.3s ease-out",
+                  position: "relative",
                 }}
               >
+                {/* Close button */}
+                <button
+                  onClick={closePayouts({ showPayouts })}
+                  style={{
+                    position: "absolute",
+                    top: "-8px",
+                    right: "-8px",
+                    width: "16px",
+                    height: "16px",
+                    borderRadius: "50%",
+                    border: "1px solid #cbd5e1",
+                    backgroundColor: "white",
+                    fontSize: "10px",
+                    lineHeight: "1",
+                    cursor: "pointer",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    padding: "0",
+                    color: "#64748b",
+                  }}
+                >
+                  ×
+                </button>
+
                 {payoutPercentages.map((prize, i) => (
                   <div
                     key={i}
