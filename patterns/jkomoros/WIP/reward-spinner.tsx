@@ -155,7 +155,7 @@ export default recipe<SpinnerInput, SpinnerOutput>(
           {/* Slot Machine Display */}
           <div
             style={{
-              width: "min(250px, 80vw)",
+              width: "min(300px, 90vw)",
               height: "200px",
               overflow: "hidden",
               position: "relative",
@@ -192,12 +192,48 @@ export default recipe<SpinnerInput, SpinnerOutput>(
                         justifyContent: "center",
                         width: "100%",
                         flexShrink: "0",
-                        whiteSpace: "nowrap",
-                        letterSpacing: "-0.55em",
-                        paddingLeft: "0.55em",
+                        position: "relative",
                       }}
                     >
-                      {emoji}
+                      {emoji === "🍬🍬🍬" ? (
+                        <>
+                          {/* Left candy - behind and up-left */}
+                          <span style={{
+                            position: "absolute",
+                            fontSize: "150px",
+                            left: "calc(50% - 60px)",
+                            top: "calc(50% - 15px)",
+                            transform: "translate(-50%, -50%)",
+                            zIndex: 1,
+                          }}>🍬</span>
+                          {/* Right candy - behind and up-right */}
+                          <span style={{
+                            position: "absolute",
+                            fontSize: "150px",
+                            left: "calc(50% + 60px)",
+                            top: "calc(50% - 15px)",
+                            transform: "translate(-50%, -50%)",
+                            zIndex: 1,
+                          }}>🍬</span>
+                          {/* Middle candy - in front, centered */}
+                          <span style={{
+                            position: "absolute",
+                            fontSize: "150px",
+                            left: "50%",
+                            top: "50%",
+                            transform: "translate(-50%, -50%)",
+                            zIndex: 2,
+                          }}>🍬</span>
+                        </>
+                      ) : (
+                        <span style={{
+                          position: "absolute",
+                          fontSize: "150px",
+                          left: "50%",
+                          top: "50%",
+                          transform: "translate(-50%, -50%)",
+                        }}>{emoji}</span>
+                      )}
                     </div>
                   ))}
                 </div>
@@ -228,12 +264,48 @@ export default recipe<SpinnerInput, SpinnerOutput>(
                         justifyContent: "center",
                         width: "100%",
                         flexShrink: "0",
-                        whiteSpace: "nowrap",
-                        letterSpacing: "-0.55em",
-                        paddingLeft: "0.55em",
+                        position: "relative",
                       }}
                     >
-                      {emoji}
+                      {emoji === "🍬🍬🍬" ? (
+                        <>
+                          {/* Left candy - behind and up-left */}
+                          <span style={{
+                            position: "absolute",
+                            fontSize: "150px",
+                            left: "calc(50% - 60px)",
+                            top: "calc(50% - 15px)",
+                            transform: "translate(-50%, -50%)",
+                            zIndex: 1,
+                          }}>🍬</span>
+                          {/* Right candy - behind and up-right */}
+                          <span style={{
+                            position: "absolute",
+                            fontSize: "150px",
+                            left: "calc(50% + 60px)",
+                            top: "calc(50% - 15px)",
+                            transform: "translate(-50%, -50%)",
+                            zIndex: 1,
+                          }}>🍬</span>
+                          {/* Middle candy - in front, centered */}
+                          <span style={{
+                            position: "absolute",
+                            fontSize: "150px",
+                            left: "50%",
+                            top: "50%",
+                            transform: "translate(-50%, -50%)",
+                            zIndex: 2,
+                          }}>🍬</span>
+                        </>
+                      ) : (
+                        <span style={{
+                          position: "absolute",
+                          fontSize: "150px",
+                          left: "50%",
+                          top: "50%",
+                          transform: "translate(-50%, -50%)",
+                        }}>{emoji}</span>
+                      )}
                     </div>
                   ))}
                 </div>
@@ -248,12 +320,49 @@ export default recipe<SpinnerInput, SpinnerOutput>(
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
-                  whiteSpace: "nowrap",
-                  letterSpacing: "-0.55em",
-                  paddingLeft: "0.55em",
+                  width: "100%",
+                  position: "relative",
                 }}
               >
-                {currentEmoji}
+                {currentEmoji === "🍬🍬🍬" ? (
+                  <>
+                    {/* Left candy - behind and up-left */}
+                    <span style={{
+                      position: "absolute",
+                      fontSize: "150px",
+                      left: "calc(50% - 60px)",
+                      top: "calc(50% - 15px)",
+                      transform: "translate(-50%, -50%)",
+                      zIndex: 1,
+                    }}>🍬</span>
+                    {/* Right candy - behind and up-right */}
+                    <span style={{
+                      position: "absolute",
+                      fontSize: "150px",
+                      left: "calc(50% + 60px)",
+                      top: "calc(50% - 15px)",
+                      transform: "translate(-50%, -50%)",
+                      zIndex: 1,
+                    }}>🍬</span>
+                    {/* Middle candy - in front, centered */}
+                    <span style={{
+                      position: "absolute",
+                      fontSize: "150px",
+                      left: "50%",
+                      top: "50%",
+                      transform: "translate(-50%, -50%)",
+                      zIndex: 2,
+                    }}>🍬</span>
+                  </>
+                ) : (
+                  <span style={{
+                    position: "absolute",
+                    fontSize: "150px",
+                    left: "50%",
+                    top: "50%",
+                    transform: "translate(-50%, -50%)",
+                  }}>{currentEmoji}</span>
+                )}
               </div>
             )}
           </div>
