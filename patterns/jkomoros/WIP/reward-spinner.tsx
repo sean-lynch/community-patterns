@@ -26,6 +26,8 @@ interface SpinnerInput {
   spinSequence: Default<string[], []>;
   // Counter to force animation restart
   spinCount: Default<number, 0>;
+  // Show payout visualization
+  showPayouts: Default<boolean, false>;
 }
 
 interface SpinnerOutput {
@@ -34,6 +36,7 @@ interface SpinnerOutput {
   generosity: Default<number, 0>;
   spinSequence: Default<string[], []>;
   spinCount: Default<number, 0>;
+  showPayouts: Default<boolean, false>;
 }
 
 const spin = handler<
@@ -104,26 +107,34 @@ const spin = handler<
 
 const decrementGenerosity = handler<
   unknown,
-  { generosity: Cell<number> }
+  { generosity: Cell<number>; showPayouts: Cell<boolean> }
 >(
-  (_, { generosity }) => {
+  (_, { generosity, showPayouts }) => {
     const current = generosity.get();
-    if (current > 0) generosity.set(current - 1);
+    if (current > 0) {
+      generosity.set(current - 1);
+      showPayouts.set(true);
+      setTimeout(() => showPayouts.set(false), 2000);
+    }
   }
 );
 
 const incrementGenerosity = handler<
   unknown,
-  { generosity: Cell<number> }
+  { generosity: Cell<number>; showPayouts: Cell<boolean> }
 >(
-  (_, { generosity }) => {
+  (_, { generosity, showPayouts }) => {
     const current = generosity.get();
-    if (current < 10) generosity.set(current + 1);
+    if (current < 10) {
+      generosity.set(current + 1);
+      showPayouts.set(true);
+      setTimeout(() => showPayouts.set(false), 2000);
+    }
   }
 );
 
 export default recipe<SpinnerInput, SpinnerOutput>(
-  ({ currentEmoji, isSpinning, generosity, spinSequence, spinCount }) => {
+  ({ currentEmoji, isSpinning, generosity, spinSequence, spinCount, showPayouts }) => {
     // Compute the TADA emoji display from generosity level (0-10 emojis, one per level)
     const tadaDisplay = computed(() =>
       "🎉".repeat(generosity)
@@ -135,6 +146,22 @@ export default recipe<SpinnerInput, SpinnerOutput>(
 
     // Check if spinCount is even or odd to alternate animations
     const isEvenSpin = computed(() => spinCount % 2 === 0);
+
+    // Calculate payout percentages
+    const payoutPercentages = computed(() => {
+      const gen = generosity;
+      const hugWeight = 11 - gen;
+      const candyWeight = 1 + (gen * 10);
+      const weightThreeBeans = candyWeight * 0.45;
+      const weightOneBean = candyWeight * 0.55;
+      const totalWeight = weightThreeBeans + weightOneBean + hugWeight;
+
+      return [
+        { emoji: "🍬🍬🍬", percent: (weightThreeBeans / totalWeight) * 100 },
+        { emoji: "🍬", percent: (weightOneBean / totalWeight) * 100 },
+        { emoji: "🤗", percent: (hugWeight / totalWeight) * 100 },
+      ];
+    });
 
     return {
       [NAME]: str`Reward Spinner`,
@@ -386,6 +413,16 @@ export default recipe<SpinnerInput, SpinnerOutput>(
                 transform: translateY(-2800px);
               }
             }
+            @keyframes slideUp {
+              0% {
+                transform: translateY(20px);
+                opacity: 0;
+              }
+              100% {
+                transform: translateY(0);
+                opacity: 1;
+              }
+            }
           `}</style>
 
           {/* Spin Button */}
@@ -425,6 +462,54 @@ export default recipe<SpinnerInput, SpinnerOutput>(
               backdropFilter: "blur(4px)",
             }}
           >
+            {/* Payout visualization - appears above TADA */}
+            {showPayouts ? (
+              <div
+                style={{
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: "3px",
+                  marginBottom: "6px",
+                  animation: "slideUp 0.3s ease-out",
+                }}
+              >
+                {payoutPercentages.map((prize, i) => (
+                  <div
+                    key={i}
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "6px",
+                      fontSize: "10px",
+                    }}
+                  >
+                    <span style={{ fontSize: "14px" }}>{prize.emoji}</span>
+                    <div
+                      style={{
+                        width: "100px",
+                        height: "12px",
+                        backgroundColor: "#e2e8f0",
+                        borderRadius: "2px",
+                        overflow: "hidden",
+                      }}
+                    >
+                      <div
+                        style={{
+                          width: `${prize.percent}%`,
+                          height: "100%",
+                          backgroundColor: i === 2 ? "#f87171" : "#4ade80",
+                          transition: "width 0.3s ease-out",
+                        }}
+                      />
+                    </div>
+                    <span style={{ fontSize: "9px", minWidth: "30px" }}>
+                      {Math.round(prize.percent)}%
+                    </span>
+                  </div>
+                ))}
+              </div>
+            ) : null}
+
             {/* Visual readout: TADA emojis based on generosity level */}
             <div style={{ fontSize: "12px", minHeight: "16px", lineHeight: "1" }}>
               {tadaDisplay}
@@ -433,7 +518,7 @@ export default recipe<SpinnerInput, SpinnerOutput>(
             {/* Controls */}
             <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
               <button
-                onClick={decrementGenerosity({ generosity })}
+                onClick={decrementGenerosity({ generosity, showPayouts })}
                 disabled={minusDisabled}
                 style={{
                   fontSize: "14px",
@@ -448,7 +533,7 @@ export default recipe<SpinnerInput, SpinnerOutput>(
                 −
               </button>
               <button
-                onClick={incrementGenerosity({ generosity })}
+                onClick={incrementGenerosity({ generosity, showPayouts })}
                 disabled={plusDisabled}
                 style={{
                   fontSize: "14px",
@@ -471,6 +556,7 @@ export default recipe<SpinnerInput, SpinnerOutput>(
       generosity,
       spinSequence,
       spinCount,
+      showPayouts,
     };
   }
 );
