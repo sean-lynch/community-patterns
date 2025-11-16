@@ -9,9 +9,8 @@
 User has already completed Phase 1 (in README.md):
 - ✅ Installed Claude Code
 - ✅ Installed tools (deno, gh, nvm/node) and verified git is available
-- ✅ Cloned their fork of community-patterns
-- ✅ Configured Playwright MCP
-- ✅ Restarted Claude Code
+- ✅ Cloned their fork of community-patterns (includes `.mcp.json` for Playwright)
+- ✅ Restarted Claude Code (MCP auto-configured from `.mcp.json`)
 
 Now guide them through cloning dependencies, getting API keys, and creating their workspace.
 

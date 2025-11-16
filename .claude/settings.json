@@ -1,0 +1,33 @@
+{
+  "permissions": {
+    "allow": [
+      "Read",
+      "Grep",
+      "Glob",
+      "Bash(git remote get-url *)",
+      "Bash(git rev-parse *)",
+      "Bash(git fetch *)",
+      "Bash(git status*)",
+      "Bash(git log *)",
+      "Bash(git diff *)",
+      "Bash(git branch*)",
+      "Bash(test -f *)",
+      "Bash([ -s * ])",
+      "Bash(lsof -ti:*)",
+      "Bash(which *)",
+      "Bash(command -v *)",
+      "Bash(echo *)",
+      "Bash(pwd*)",
+      "Bash(ls *)",
+      "Bash(*--version)",
+      "Bash(deno task ct dev * --no-run)"
+    ],
+    "deny": [
+      "Bash(rm *)",
+      "Bash(git push *)",
+      "Bash(git reset --hard*)",
+      "Bash(curl *)",
+      "WebFetch"
+    ]
+  }
+}

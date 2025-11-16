@@ -98,20 +98,11 @@ gh repo clone YOUR-USERNAME/community-patterns
 cd community-patterns
 ```
 
-### Step 4: Install Playwright MCP
-
-Playwright enables automated browser testing of your patterns. **This is required.**
-
-```bash
-# Install Playwright MCP using the Claude CLI
-claude mcp add playwright npx '@playwright/mcp@latest'
-```
-
-### Step 5: Restart Claude Code
+### Step 4: Restart Claude Code
 
 **CRITICAL:** Quit Claude Code completely (Cmd+Q on macOS) and relaunch it.
 
-You should see a small "🔌" icon indicating MCP is connected.
+This repository includes `.mcp.json` which configures Playwright MCP automatically. After restarting, you should see a small "🔌" icon indicating MCP is connected.
 
 ---
 
