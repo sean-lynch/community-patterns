@@ -1,12 +1,12 @@
 # Getting Started with Common Tools Pattern Development
 
-**Note:** This guide is for Claude Code to use when guiding new users through workspace setup. Users should complete the pre-setup steps in README.md first.
+**Note:** This guide is for Claude Code to use when guiding new users through workspace setup. Users should complete the pre-setup steps in SETUP.md first.
 
 ---
 
 ## Workspace Setup
 
-User has already completed Phase 1 (in README.md):
+User has already completed Phase 1 (in SETUP.md):
 - ✅ Installed Claude Code
 - ✅ Installed tools (deno, gh, nvm/node) and verified git is available
 - ✅ Cloned their fork of community-patterns (includes `.mcp.json` for Playwright)

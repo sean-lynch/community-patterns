@@ -269,9 +269,10 @@ community-patterns/        # THIS REPO (user's fork)
 ├── .claude-workspace      # Workspace config: username, setup status (gitignored)
 ├── claude.key             # Identity key for deploying patterns (gitignored)
 ├── CLAUDE.md              # This file - Claude's instructions
-├── GETTING_STARTED.md     # First-time setup guide
+├── GETTING_STARTED.md     # First-time setup guide (Claude-guided)
 ├── DEVELOPMENT.md         # Normal development workflows
-├── README.md              # Quick overview
+├── README.md              # Quick overview with warnings
+├── SETUP.md               # Setup instructions
 └── patterns/
     ├── examples/          # Shared examples (READ-ONLY)
     ├── alice/, bob/, ...  # Other users (READ-ONLY)
