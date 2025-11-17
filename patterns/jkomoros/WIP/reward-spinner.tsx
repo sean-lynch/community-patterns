@@ -72,8 +72,9 @@ const spin = handler<
     const candyWeight = 1 + ((10 - gen) * 2.0); // 21.0 to 1.0
 
     // Split candy between 3 beans and 1 bean
-    const weightThreeBeans = candyWeight * 0.45;
-    const weightOneBean = candyWeight * 0.55;
+    // Three beans is rare: only 15% of candy payouts
+    const weightThreeBeans = candyWeight * 0.15;
+    const weightOneBean = candyWeight * 0.85;
 
     const weights = [weightThreeBeans, weightOneBean, hugWeight];
 
@@ -198,8 +199,8 @@ export default recipe<SpinnerInput, SpinnerOutput>(
       // Same smooth curve as spin handler
       const hugWeight = 1 + (gen * 2.0); // 1.0 to 21.0
       const candyWeight = 1 + ((10 - gen) * 2.0); // 21.0 to 1.0
-      const weightThreeBeans = candyWeight * 0.45;
-      const weightOneBean = candyWeight * 0.55;
+      const weightThreeBeans = candyWeight * 0.15;
+      const weightOneBean = candyWeight * 0.85;
       const totalWeight = weightThreeBeans + weightOneBean + hugWeight;
 
       const threeBeansPct = Math.round((weightThreeBeans / totalWeight) * 100);
