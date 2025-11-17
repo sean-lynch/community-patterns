@@ -130,11 +130,6 @@ const spin = handler<
     spinSequence.set(sequence);
     spinCount.set(spinCount.get() + 1);
 
-    // Clear the sequence after animation completes (6s) to show static display
-    setTimeout(() => {
-      spinSequence.set([]);
-    }, 6000);
-
     // Record this spin in history
     const history = spinHistory.get();
     const newRecord: SpinRecord = {
@@ -186,6 +181,19 @@ export default recipe<SpinnerInput, SpinnerOutput>(
 
     // Check if spinCount is even or odd to alternate animations
     const isEvenSpin = computed(() => spinCount.get() % 2 === 0);
+
+    // Only show animation if the last spin was very recent (within 10 seconds)
+    // This prevents auto-spin when navigating back to the page later
+    const shouldShowAnimation = computed(() => {
+      const sequence = spinSequence.get();
+      const history = spinHistory.get();
+      if (sequence.length === 0) return false;
+      if (history.length === 0) return false;
+
+      const lastSpin = history[history.length - 1];
+      const timeSinceLastSpin = Date.now() - lastSpin.timestamp;
+      return timeSinceLastSpin < 10000; // 10 seconds
+    });
 
     // Calculate payout percentages and convert to emoji dots (poor man's progress bars)
     const payoutDots = computed(() => {
@@ -269,7 +277,7 @@ export default recipe<SpinnerInput, SpinnerOutput>(
                 transform: "scale(clamp(0.95, calc(0.7 + 0.00078125 * 100vw), 2.2))",
               }}
             >
-            {spinSequence.get().length > 0 ? (
+            {shouldShowAnimation ? (
               isEvenSpin ? (
                 // Animated sequence (even spins)
                 <div
@@ -473,7 +481,7 @@ export default recipe<SpinnerInput, SpinnerOutput>(
             </div>
 
             {/* Sparkle Burst - alternates between two animation sets to restart on each spin */}
-            {spinSequence.get().length > 0 && (
+            {shouldShowAnimation && (
               (spinCount.get() % 2 === 0) ? (
                 <div
                   style={{
@@ -603,7 +611,7 @@ export default recipe<SpinnerInput, SpinnerOutput>(
                 transform: translateY(0);
               }
               100% {
-                transform: translateY(-6000px);
+                transform: translateY(-5900px);
               }
             }
             @keyframes slotSpin2 {
@@ -611,7 +619,7 @@ export default recipe<SpinnerInput, SpinnerOutput>(
                 transform: translateY(0);
               }
               100% {
-                transform: translateY(-6000px);
+                transform: translateY(-5900px);
               }
             }
             @keyframes payoutFade {
