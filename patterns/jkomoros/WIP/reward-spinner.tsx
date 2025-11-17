@@ -26,14 +26,14 @@ interface SpinRecord {
 interface SpinnerInput {
   currentEmoji: Cell<Default<string, "🎁">>;
   isSpinning: Cell<Default<boolean, false>>;
-  // Generosity level: 0 = lots of candy (5% hugs), 10 = mostly hugs (99%)
-  generosity: Cell<Default<number, 0>>;
+  // Generosity level: 0 = mostly hugs (95%), 10 = lots of candy (95%)
+  generosity: Cell<Default<number, 10>>;
   // Sequence of emojis for slot machine animation
   spinSequence: Cell<Default<string[], []>>;
   // Counter to force animation restart
   spinCount: Cell<Default<number, 0>>;
-  // Show payout visualization
-  showPayouts: Cell<Default<boolean, false>>;
+  // Counter to force payout animation restart
+  payoutAnimationCount: Cell<Default<number, 0>>;
   // History of all spins (timestamp, generosity level, result)
   spinHistory: Cell<Default<SpinRecord[], []>>;
 }
@@ -41,11 +41,32 @@ interface SpinnerInput {
 interface SpinnerOutput {
   currentEmoji: Cell<Default<string, "🎁">>;
   isSpinning: Cell<Default<boolean, false>>;
-  generosity: Cell<Default<number, 0>>;
+  generosity: Cell<Default<number, 10>>;
   spinSequence: Cell<Default<string[], []>>;
   spinCount: Cell<Default<number, 0>>;
-  showPayouts: Cell<Default<boolean, false>>;
+  payoutAnimationCount: Cell<Default<number, 0>>;
   spinHistory: Cell<Default<SpinRecord[], []>>;
+}
+
+/**
+ * Calculate prize weights based on generosity level
+ * @param generosity - Level from 0 to 10 (0 = mostly hugs, 10 = lots of candy)
+ * @returns Array of [weightThreeBeans, weightOneBean, hugWeight]
+ */
+function calculatePrizeWeights(generosity: number): [number, number, number] {
+  // Use linear curve for smooth transition
+  // At gen=0: hugWeight=21, candyWeight=1 → 95% hugs, 5% candy
+  // At gen=5: hugWeight=11, candyWeight=11 → 50% hugs, 50% candy
+  // At gen=10: hugWeight=1, candyWeight=21 → 5% hugs, 95% candy
+  const hugWeight = 1 + ((10 - generosity) * 2.0); // 21.0 to 1.0
+  const candyWeight = 1 + (generosity * 2.0); // 1.0 to 21.0
+
+  // Split candy between 3 beans and 1 bean
+  // Three beans is rare: only 15% of candy payouts
+  const weightThreeBeans = candyWeight * 0.15;
+  const weightOneBean = candyWeight * 0.85;
+
+  return [weightThreeBeans, weightOneBean, hugWeight];
 }
 
 const spin = handler<
@@ -60,22 +81,8 @@ const spin = handler<
   }
 >(
   (_, { currentEmoji, isSpinning, generosity, spinSequence, spinCount, spinHistory }) => {
-    // Convert generosity (0-10) to weights
-    // Smooth curve from 95% candy at 0 to 95% hugs at 10
     const gen = generosity.get();
-
-    // Use linear curve for smooth transition
-    // At gen=0: hugWeight=1, candyWeight=21 → 5% hugs, 95% candy
-    // At gen=5: hugWeight=11, candyWeight=11 → 50% hugs, 50% candy
-    // At gen=10: hugWeight=21, candyWeight=1 → 95% hugs, 5% candy
-    const hugWeight = 1 + (gen * 2.0); // 1.0 to 21.0
-    const candyWeight = 1 + ((10 - gen) * 2.0); // 21.0 to 1.0
-
-    // Split candy between 3 beans and 1 bean
-    const weightThreeBeans = candyWeight * 0.45;
-    const weightOneBean = candyWeight * 0.55;
-
-    const weights = [weightThreeBeans, weightOneBean, hugWeight];
+    const weights = calculatePrizeWeights(gen);
 
     // Calculate total weight
     const totalWeight = weights.reduce((sum, w) => sum + w, 0);
@@ -99,15 +106,15 @@ const spin = handler<
 
     // Build slot machine sequence: start with current emoji to avoid visual discontinuity,
     // then random items, then final result at the end
-    // Total of 15 items, with final result at position 13 (animation shows positions 0-13)
-    // Animation translates -2800px over 15 items of 200px each, ending at position 13 visible
+    // Total of 32 items, with final result at position 30 (animation shows positions 0-30)
+    // Animation translates -6000px over 32 items of 200px each, ending at position 30 visible
     const sequence: string[] = [];
-    for (let i = 0; i < 15; i++) {
+    for (let i = 0; i < 32; i++) {
       if (i === 0) {
         // First item is current emoji (avoids visual jump)
         sequence.push(currentEmoji.get());
-      } else if (i === 13) {
-        // Final result at position 13 (will be visible after animation stops)
+      } else if (i === 30) {
+        // Final result at position 30 (will be visible after animation stops)
         sequence.push(finalEmoji);
       } else {
         // Random prize
@@ -141,44 +148,33 @@ const spin = handler<
 
 const decrementGenerosity = handler<
   unknown,
-  { generosity: Cell<number>; showPayouts: Cell<boolean> }
+  { generosity: Cell<number>; payoutAnimationCount: Cell<number> }
 >(
-  (_, { generosity, showPayouts }) => {
+  (_, { generosity, payoutAnimationCount }) => {
     const current = generosity.get();
     if (current > 0) {
       generosity.set(current - 1);
-      showPayouts.set(true);
-      setTimeout(() => showPayouts.set(false), 2000);
+      payoutAnimationCount.set(payoutAnimationCount.get() + 1);
     }
   }
 );
 
 const incrementGenerosity = handler<
   unknown,
-  { generosity: Cell<number>; showPayouts: Cell<boolean> }
+  { generosity: Cell<number>; payoutAnimationCount: Cell<number> }
 >(
-  (_, { generosity, showPayouts }) => {
+  (_, { generosity, payoutAnimationCount }) => {
     const current = generosity.get();
     if (current < 10) {
       generosity.set(current + 1);
-      showPayouts.set(true);
-      setTimeout(() => showPayouts.set(false), 2000);
+      payoutAnimationCount.set(payoutAnimationCount.get() + 1);
     }
-  }
-);
-
-const closePayouts = handler<
-  unknown,
-  { showPayouts: Cell<boolean> }
->(
-  (_, { showPayouts }) => {
-    showPayouts.set(false);
   }
 );
 
 export default recipe<SpinnerInput, SpinnerOutput>(
   "Reward Spinner",
-  ({ currentEmoji, isSpinning, generosity, spinSequence, spinCount, showPayouts, spinHistory }) => {
+  ({ currentEmoji, isSpinning, generosity, spinSequence, spinCount, payoutAnimationCount, spinHistory }) => {
     // Compute the TADA emoji display from generosity level (0-10 emojis, one per level)
     const tadaDisplay = computed(() =>
       "🎉".repeat(generosity.get())
@@ -194,12 +190,7 @@ export default recipe<SpinnerInput, SpinnerOutput>(
     // Calculate payout percentages and convert to emoji dots (poor man's progress bars)
     const payoutDots = computed(() => {
       const gen = generosity.get();
-
-      // Same smooth curve as spin handler
-      const hugWeight = 1 + (gen * 2.0); // 1.0 to 21.0
-      const candyWeight = 1 + ((10 - gen) * 2.0); // 21.0 to 1.0
-      const weightThreeBeans = candyWeight * 0.45;
-      const weightOneBean = candyWeight * 0.55;
+      const [weightThreeBeans, weightOneBean, hugWeight] = calculatePrizeWeights(gen);
       const totalWeight = weightThreeBeans + weightOneBean + hugWeight;
 
       const threeBeansPct = Math.round((weightThreeBeans / totalWeight) * 100);
@@ -224,21 +215,20 @@ export default recipe<SpinnerInput, SpinnerOutput>(
     return {
       [NAME]: str`Reward Spinner`,
       [UI]: (
-        <div
-          style={{
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            justifyContent: "center",
-            minHeight: "100vh",
-            backgroundColor: "white",
-            fontFamily: "system-ui, sans-serif",
-            padding: "20px",
-            gap: "40px",
-          }}
-        >
+        <ct-screen style="background-color: white; font-family: system-ui, sans-serif;">
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              justifyContent: "center",
+              height: "100%",
+              padding: "0",
+              gap: "0",
+            }}
+          >
           {/* Wrapper for emoji and sparkles */}
-          <div style={{ position: "relative" }}>
+          <div style={{ position: "relative", width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center" }}>
             {/* Slot Machine Display */}
             <div
               onClick={spin({
@@ -259,7 +249,7 @@ export default recipe<SpinnerInput, SpinnerOutput>(
                 justifyContent: "center",
                 maskImage: "linear-gradient(to bottom, transparent 0%, black 30%, black 70%, transparent 100%)",
                 cursor: "pointer",
-                transform: "scale(1.8)",
+                transform: "scale(4.0)",
               }}
             >
             {spinSequence.get().length > 0 ? (
@@ -270,7 +260,7 @@ export default recipe<SpinnerInput, SpinnerOutput>(
                     display: "flex",
                     flexDirection: "column",
                     alignItems: "center",
-                    animation: "slotSpin1 6s cubic-bezier(0.25, 0.1, 0.25, 1)",
+                    animation: "slotSpin1 6s cubic-bezier(0.05, 0.7, 0.3, 1)",
                     animationFillMode: "forwards",
                     position: "absolute",
                     top: "0",
@@ -342,7 +332,7 @@ export default recipe<SpinnerInput, SpinnerOutput>(
                     display: "flex",
                     flexDirection: "column",
                     alignItems: "center",
-                    animation: "slotSpin2 6s cubic-bezier(0.25, 0.1, 0.25, 1)",
+                    animation: "slotSpin2 6s cubic-bezier(0.05, 0.7, 0.3, 1)",
                     animationFillMode: "forwards",
                     position: "absolute",
                     top: "0",
@@ -588,7 +578,7 @@ export default recipe<SpinnerInput, SpinnerOutput>(
                 transform: translateY(0);
               }
               100% {
-                transform: translateY(-2800px);
+                transform: translateY(-6000px);
               }
             }
             @keyframes slotSpin2 {
@@ -596,39 +586,24 @@ export default recipe<SpinnerInput, SpinnerOutput>(
                 transform: translateY(0);
               }
               100% {
-                transform: translateY(-2800px);
+                transform: translateY(-6000px);
               }
             }
-            @keyframes slideUp {
+            @keyframes payoutFade {
               0% {
-                transform: translateY(20px);
-                opacity: 0;
-              }
-              100% {
                 transform: translateY(0);
                 opacity: 1;
               }
+              85% {
+                transform: translateY(0);
+                opacity: 1;
+              }
+              100% {
+                transform: translateY(-10px);
+                opacity: 0;
+              }
             }
           `}</style>
-
-          {/* Spin Button */}
-          <ct-button
-            onClick={spin({
-              currentEmoji,
-              isSpinning,
-              generosity,
-              spinSequence,
-              spinCount,
-              spinHistory,
-            })}
-            style={{
-              fontSize: "32px",
-              padding: "20px 40px",
-              fontWeight: "bold",
-            }}
-          >
-            🎰 SPIN!
-          </ct-button>
 
           {/* Subtle controls at bottom - not obvious to kids */}
           <div
@@ -649,43 +624,17 @@ export default recipe<SpinnerInput, SpinnerOutput>(
               backdropFilter: "blur(4px)",
             }}
           >
-            {/* Payout visualization - appears above TADA */}
-            {showPayouts ? (
+            {/* Payout visualization - auto-fades after 3s */}
+            {payoutAnimationCount.get() % 2 === 0 ? (
               <div
                 style={{
                   display: "flex",
                   flexDirection: "column",
                   gap: "3px",
                   marginBottom: "6px",
-                  animation: "slideUp 0.3s ease-out",
-                  position: "relative",
+                  animation: "payoutFade 3.5s ease-out forwards",
                 }}
               >
-                {/* Close button */}
-                <button
-                  onClick={closePayouts({ showPayouts })}
-                  style={{
-                    position: "absolute",
-                    top: "-8px",
-                    right: "-8px",
-                    width: "16px",
-                    height: "16px",
-                    borderRadius: "50%",
-                    border: "1px solid #cbd5e1",
-                    backgroundColor: "white",
-                    fontSize: "10px",
-                    lineHeight: "1",
-                    cursor: "pointer",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    padding: "0",
-                    color: "#64748b",
-                  }}
-                >
-                  ×
-                </button>
-
                 {payoutDots.map((prize, i) => (
                   <div
                     key={i}
@@ -696,7 +645,7 @@ export default recipe<SpinnerInput, SpinnerOutput>(
                       fontSize: "10px",
                     }}
                   >
-                    <span style={{ fontSize: "14px" }}>{prize.emoji}</span>
+                    <span style={{ fontSize: "14px", minWidth: "42px", textAlign: "right" }}>{prize.emoji}</span>
                     <span style={{ fontSize: "12px", letterSpacing: "1px" }}>{ prize.dots}</span>
                     <span style={{ fontSize: "9px", minWidth: "30px" }}>
                       {prize.percent}%
@@ -704,7 +653,35 @@ export default recipe<SpinnerInput, SpinnerOutput>(
                   </div>
                 ))}
               </div>
-            ) : null}
+            ) : (
+              <div
+                style={{
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: "3px",
+                  marginBottom: "6px",
+                  animation: "payoutFade 3.5s ease-out forwards",
+                }}
+              >
+                {payoutDots.map((prize, i) => (
+                  <div
+                    key={i}
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "6px",
+                      fontSize: "10px",
+                    }}
+                  >
+                    <span style={{ fontSize: "14px", minWidth: "42px", textAlign: "right" }}>{prize.emoji}</span>
+                    <span style={{ fontSize: "12px", letterSpacing: "1px" }}>{ prize.dots}</span>
+                    <span style={{ fontSize: "9px", minWidth: "30px" }}>
+                      {prize.percent}%
+                    </span>
+                  </div>
+                ))}
+              </div>
+            )}
 
             {/* Visual readout: TADA emojis based on generosity level */}
             <div style={{ fontSize: "12px", minHeight: "16px", lineHeight: "1" }}>
@@ -714,7 +691,7 @@ export default recipe<SpinnerInput, SpinnerOutput>(
             {/* Controls */}
             <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
               <button
-                onClick={decrementGenerosity({ generosity, showPayouts })}
+                onClick={decrementGenerosity({ generosity, payoutAnimationCount })}
                 disabled={minusDisabled}
                 style={{
                   fontSize: "14px",
@@ -729,7 +706,7 @@ export default recipe<SpinnerInput, SpinnerOutput>(
                 −
               </button>
               <button
-                onClick={incrementGenerosity({ generosity, showPayouts })}
+                onClick={incrementGenerosity({ generosity, payoutAnimationCount })}
                 disabled={plusDisabled}
                 style={{
                   fontSize: "14px",
@@ -746,13 +723,14 @@ export default recipe<SpinnerInput, SpinnerOutput>(
             </div>
           </div>
         </div>
+        </ct-screen>
       ),
       currentEmoji,
       isSpinning,
       generosity,
       spinSequence,
       spinCount,
-      showPayouts,
+      payoutAnimationCount,
       spinHistory,
     };
   }
