@@ -176,9 +176,6 @@ export default recipe<SpinnerInput, SpinnerOutput>(
     // Check if spinCount is even or odd to alternate animations
     const isEvenSpin = computed(() => spinCount.get() % 2 === 0);
 
-    // Check if currently spinning (for sparkles)
-    const showSparkles = computed(() => spinSequence.get().length > 0);
-
     // Calculate payout percentages
     const payoutPercentages = computed(() => {
       const gen = generosity.get();
@@ -227,7 +224,7 @@ export default recipe<SpinnerInput, SpinnerOutput>(
               maskImage: "linear-gradient(to bottom, transparent 0%, black 30%, black 70%, transparent 100%)",
             }}
           >
-            {showSparkles ? (
+            {spinSequence.get().length > 0 ? (
               isEvenSpin ? (
                 // Animated sequence (even spins)
                 <div
@@ -430,66 +427,8 @@ export default recipe<SpinnerInput, SpinnerOutput>(
             )}
           </div>
 
-          {/* Sparkle Burst - shows when spinning */}
-          {showSparkles ? (
-            <div
-              style={{
-                position: "fixed",
-                top: "50%",
-                left: "50%",
-                width: "0",
-                height: "0",
-                pointerEvents: "none",
-                zIndex: 1000,
-              }}
-            >
-              <div style={{ position: "absolute", left: "0", top: "0", fontSize: "40px", animation: "sparkleBurst0 2s ease-out forwards" }}>⭐</div>
-              <div style={{ position: "absolute", left: "0", top: "0", fontSize: "40px", animation: "sparkleBurst1 2s ease-out forwards" }}>⭐</div>
-              <div style={{ position: "absolute", left: "0", top: "0", fontSize: "40px", animation: "sparkleBurst2 2s ease-out forwards" }}>⭐</div>
-              <div style={{ position: "absolute", left: "0", top: "0", fontSize: "40px", animation: "sparkleBurst3 2s ease-out forwards" }}>⭐</div>
-              <div style={{ position: "absolute", left: "0", top: "0", fontSize: "40px", animation: "sparkleBurst4 2s ease-out forwards" }}>⭐</div>
-              <div style={{ position: "absolute", left: "0", top: "0", fontSize: "40px", animation: "sparkleBurst5 2s ease-out forwards" }}>⭐</div>
-              <div style={{ position: "absolute", left: "0", top: "0", fontSize: "40px", animation: "sparkleBurst6 2s ease-out forwards" }}>⭐</div>
-              <div style={{ position: "absolute", left: "0", top: "0", fontSize: "40px", animation: "sparkleBurst7 2s ease-out forwards" }}>⭐</div>
-              <div style={{ position: "absolute", left: "0", top: "0", fontSize: "40px", animation: "sparkleBurst8 2s ease-out forwards" }}>⭐</div>
-              <div style={{ position: "absolute", left: "0", top: "0", fontSize: "40px", animation: "sparkleBurst9 2s ease-out forwards" }}>⭐</div>
-              <div style={{ position: "absolute", left: "0", top: "0", fontSize: "40px", animation: "sparkleBurst10 2s ease-out forwards" }}>⭐</div>
-              <div style={{ position: "absolute", left: "0", top: "0", fontSize: "40px", animation: "sparkleBurst11 2s ease-out forwards" }}>⭐</div>
-              <div style={{ position: "absolute", left: "0", top: "0", fontSize: "40px", animation: "sparkleBurst12 2s ease-out forwards" }}>⭐</div>
-              <div style={{ position: "absolute", left: "0", top: "0", fontSize: "40px", animation: "sparkleBurst13 2s ease-out forwards" }}>⭐</div>
-              <div style={{ position: "absolute", left: "0", top: "0", fontSize: "40px", animation: "sparkleBurst14 2s ease-out forwards" }}>⭐</div>
-              <div style={{ position: "absolute", left: "0", top: "0", fontSize: "40px", animation: "sparkleBurst15 2s ease-out forwards" }}>⭐</div>
-              <div style={{ position: "absolute", left: "0", top: "0", fontSize: "40px", animation: "sparkleBurst16 2s ease-out forwards" }}>⭐</div>
-              <div style={{ position: "absolute", left: "0", top: "0", fontSize: "40px", animation: "sparkleBurst17 2s ease-out forwards" }}>⭐</div>
-              <div style={{ position: "absolute", left: "0", top: "0", fontSize: "40px", animation: "sparkleBurst18 2s ease-out forwards" }}>⭐</div>
-              <div style={{ position: "absolute", left: "0", top: "0", fontSize: "40px", animation: "sparkleBurst19 2s ease-out forwards" }}>⭐</div>
-            </div>
-          ) : null}
-
           {/* CSS Animations */}
           <style>{`
-            /* Sparkle burst animations */}
-            @keyframes sparkleBurst0  { 0% { transform: translate(0, 0) rotate(0deg) scale(0); opacity: 1; } 50% { opacity: 1; } 100% { transform: translate(300px, 0px) rotate(720deg) scale(1.5); opacity: 0; } }
-            @keyframes sparkleBurst1  { 0% { transform: translate(0, 0) rotate(0deg) scale(0); opacity: 1; } 50% { opacity: 1; } 100% { transform: translate(285px, 95px) rotate(750deg) scale(1.6); opacity: 0; } }
-            @keyframes sparkleBurst2  { 0% { transform: translate(0, 0) rotate(0deg) scale(0); opacity: 1; } 50% { opacity: 1; } 100% { transform: translate(235px, 180px) rotate(680deg) scale(1.4); opacity: 0; } }
-            @keyframes sparkleBurst3  { 0% { transform: translate(0, 0) rotate(0deg) scale(0); opacity: 1; } 50% { opacity: 1; } 100% { transform: translate(155px, 255px) rotate(810deg) scale(1.7); opacity: 0; } }
-            @keyframes sparkleBurst4  { 0% { transform: translate(0, 0) rotate(0deg) scale(0); opacity: 1; } 50% { opacity: 1; } 100% { transform: translate(50px, 295px) rotate(740deg) scale(1.5); opacity: 0; } }
-            @keyframes sparkleBurst5  { 0% { transform: translate(0, 0) rotate(0deg) scale(0); opacity: 1; } 50% { opacity: 1; } 100% { transform: translate(-60px, 295px) rotate(770deg) scale(1.6); opacity: 0; } }
-            @keyframes sparkleBurst6  { 0% { transform: translate(0, 0) rotate(0deg) scale(0); opacity: 1; } 50% { opacity: 1; } 100% { transform: translate(-165px, 250px) rotate(690deg) scale(1.4); opacity: 0; } }
-            @keyframes sparkleBurst7  { 0% { transform: translate(0, 0) rotate(0deg) scale(0); opacity: 1; } 50% { opacity: 1; } 100% { transform: translate(-245px, 175px) rotate(800deg) scale(1.7); opacity: 0; } }
-            @keyframes sparkleBurst8  { 0% { transform: translate(0, 0) rotate(0deg) scale(0); opacity: 1; } 50% { opacity: 1; } 100% { transform: translate(-290px, 85px) rotate(720deg) scale(1.5); opacity: 0; } }
-            @keyframes sparkleBurst9  { 0% { transform: translate(0, 0) rotate(0deg) scale(0); opacity: 1; } 50% { opacity: 1; } 100% { transform: translate(-300px, -10px) rotate(760deg) scale(1.6); opacity: 0; } }
-            @keyframes sparkleBurst10 { 0% { transform: translate(0, 0) rotate(0deg) scale(0); opacity: 1; } 50% { opacity: 1; } 100% { transform: translate(-285px, -105px) rotate(700deg) scale(1.4); opacity: 0; } }
-            @keyframes sparkleBurst11 { 0% { transform: translate(0, 0) rotate(0deg) scale(0); opacity: 1; } 50% { opacity: 1; } 100% { transform: translate(-230px, -190px) rotate(790deg) scale(1.7); opacity: 0; } }
-            @keyframes sparkleBurst12 { 0% { transform: translate(0, 0) rotate(0deg) scale(0); opacity: 1; } 50% { opacity: 1; } 100% { transform: translate(-150px, -260px) rotate(730deg) scale(1.5); opacity: 0; } }
-            @keyframes sparkleBurst13 { 0% { transform: translate(0, 0) rotate(0deg) scale(0); opacity: 1; } 50% { opacity: 1; } 100% { transform: translate(-45px, -300px) rotate(770deg) scale(1.6); opacity: 0; } }
-            @keyframes sparkleBurst14 { 0% { transform: translate(0, 0) rotate(0deg) scale(0); opacity: 1; } 50% { opacity: 1; } 100% { transform: translate(65px, -295px) rotate(690deg) scale(1.4); opacity: 0; } }
-            @keyframes sparkleBurst15 { 0% { transform: translate(0, 0) rotate(0deg) scale(0); opacity: 1; } 50% { opacity: 1; } 100% { transform: translate(170px, -245px) rotate(800deg) scale(1.7); opacity: 0; } }
-            @keyframes sparkleBurst16 { 0% { transform: translate(0, 0) rotate(0deg) scale(0); opacity: 1; } 50% { opacity: 1; } 100% { transform: translate(250px, -170px) rotate(720deg) scale(1.5); opacity: 0; } }
-            @keyframes sparkleBurst17 { 0% { transform: translate(0, 0) rotate(0deg) scale(0); opacity: 1; } 50% { opacity: 1; } 100% { transform: translate(295px, -80px) rotate(760deg) scale(1.6); opacity: 0; } }
-            @keyframes sparkleBurst18 { 0% { transform: translate(0, 0) rotate(0deg) scale(0); opacity: 1; } 50% { opacity: 1; } 100% { transform: translate(300px, 15px) rotate(700deg) scale(1.4); opacity: 0; } }
-            @keyframes sparkleBurst19 { 0% { transform: translate(0, 0) rotate(0deg) scale(0); opacity: 1; } 50% { opacity: 1; } 100% { transform: translate(290px, 100px) rotate(790deg) scale(1.7); opacity: 0; } }
-
             @keyframes slotSpin1 {
               0% {
                 transform: translateY(0);
