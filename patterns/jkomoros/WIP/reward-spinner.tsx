@@ -441,52 +441,52 @@ export default recipe<SpinnerInput, SpinnerOutput>(
                 zIndex: 1000,
               }}
             >
-              <div style={{ position: "absolute", left: "0", top: "0", fontSize: "40px", opacity: 0, animation: "sparkleBurst0 2s ease-out 6s" }}>⭐</div>
-              <div style={{ position: "absolute", left: "0", top: "0", fontSize: "40px", opacity: 0, animation: "sparkleBurst1 2s ease-out 6s" }}>⭐</div>
-              <div style={{ position: "absolute", left: "0", top: "0", fontSize: "40px", opacity: 0, animation: "sparkleBurst2 2s ease-out 6s" }}>⭐</div>
-              <div style={{ position: "absolute", left: "0", top: "0", fontSize: "40px", opacity: 0, animation: "sparkleBurst3 2s ease-out 6s" }}>⭐</div>
-              <div style={{ position: "absolute", left: "0", top: "0", fontSize: "40px", opacity: 0, animation: "sparkleBurst4 2s ease-out 6s" }}>⭐</div>
-              <div style={{ position: "absolute", left: "0", top: "0", fontSize: "40px", opacity: 0, animation: "sparkleBurst5 2s ease-out 6s" }}>⭐</div>
-              <div style={{ position: "absolute", left: "0", top: "0", fontSize: "40px", opacity: 0, animation: "sparkleBurst6 2s ease-out 6s" }}>⭐</div>
-              <div style={{ position: "absolute", left: "0", top: "0", fontSize: "40px", opacity: 0, animation: "sparkleBurst7 2s ease-out 6s" }}>⭐</div>
-              <div style={{ position: "absolute", left: "0", top: "0", fontSize: "40px", opacity: 0, animation: "sparkleBurst8 2s ease-out 6s" }}>⭐</div>
-              <div style={{ position: "absolute", left: "0", top: "0", fontSize: "40px", opacity: 0, animation: "sparkleBurst9 2s ease-out 6s" }}>⭐</div>
-              <div style={{ position: "absolute", left: "0", top: "0", fontSize: "40px", opacity: 0, animation: "sparkleBurst10 2s ease-out 6s" }}>⭐</div>
-              <div style={{ position: "absolute", left: "0", top: "0", fontSize: "40px", opacity: 0, animation: "sparkleBurst11 2s ease-out 6s" }}>⭐</div>
-              <div style={{ position: "absolute", left: "0", top: "0", fontSize: "40px", opacity: 0, animation: "sparkleBurst12 2s ease-out 6s" }}>⭐</div>
-              <div style={{ position: "absolute", left: "0", top: "0", fontSize: "40px", opacity: 0, animation: "sparkleBurst13 2s ease-out 6s" }}>⭐</div>
-              <div style={{ position: "absolute", left: "0", top: "0", fontSize: "40px", opacity: 0, animation: "sparkleBurst14 2s ease-out 6s" }}>⭐</div>
-              <div style={{ position: "absolute", left: "0", top: "0", fontSize: "40px", opacity: 0, animation: "sparkleBurst15 2s ease-out 6s" }}>⭐</div>
-              <div style={{ position: "absolute", left: "0", top: "0", fontSize: "40px", opacity: 0, animation: "sparkleBurst16 2s ease-out 6s" }}>⭐</div>
-              <div style={{ position: "absolute", left: "0", top: "0", fontSize: "40px", opacity: 0, animation: "sparkleBurst17 2s ease-out 6s" }}>⭐</div>
-              <div style={{ position: "absolute", left: "0", top: "0", fontSize: "40px", opacity: 0, animation: "sparkleBurst18 2s ease-out 6s" }}>⭐</div>
-              <div style={{ position: "absolute", left: "0", top: "0", fontSize: "40px", opacity: 0, animation: "sparkleBurst19 2s ease-out 6s" }}>⭐</div>
+              <div style={{ position: "absolute", left: "0", top: "0", fontSize: "42px", opacity: 0, animation: "sparkleBurst0 1.2s ease-out 6s" }}>⭐</div>
+              <div style={{ position: "absolute", left: "0", top: "0", fontSize: "75px", opacity: 0, animation: "sparkleBurst1 3.5s ease-out 6s" }}>⭐</div>
+              <div style={{ position: "absolute", left: "0", top: "0", fontSize: "45px", opacity: 0, animation: "sparkleBurst2 0.9s ease-out 6s" }}>⭐</div>
+              <div style={{ position: "absolute", left: "0", top: "0", fontSize: "38px", opacity: 0, animation: "sparkleBurst3 2.8s ease-out 6s" }}>⭐</div>
+              <div style={{ position: "absolute", left: "0", top: "0", fontSize: "90px", opacity: 0, animation: "sparkleBurst4 1.4s ease-out 6s" }}>⭐</div>
+              <div style={{ position: "absolute", left: "0", top: "0", fontSize: "35px", opacity: 0, animation: "sparkleBurst5 3.2s ease-out 6s" }}>⭐</div>
+              <div style={{ position: "absolute", left: "0", top: "0", fontSize: "52px", opacity: 0, animation: "sparkleBurst6 1.1s ease-out 6s" }}>⭐</div>
+              <div style={{ position: "absolute", left: "0", top: "0", fontSize: "68px", opacity: 0, animation: "sparkleBurst7 2.6s ease-out 6s" }}>⭐</div>
+              <div style={{ position: "absolute", left: "0", top: "0", fontSize: "40px", opacity: 0, animation: "sparkleBurst8 0.8s ease-out 6s" }}>⭐</div>
+              <div style={{ position: "absolute", left: "0", top: "0", fontSize: "80px", opacity: 0, animation: "sparkleBurst9 3.0s ease-out 6s" }}>⭐</div>
+              <div style={{ position: "absolute", left: "0", top: "0", fontSize: "36px", opacity: 0, animation: "sparkleBurst10 2.4s ease-out 6s" }}>⭐</div>
+              <div style={{ position: "absolute", left: "0", top: "0", fontSize: "48px", opacity: 0, animation: "sparkleBurst11 1.3s ease-out 6s" }}>⭐</div>
+              <div style={{ position: "absolute", left: "0", top: "0", fontSize: "95px", opacity: 0, animation: "sparkleBurst12 1.6s ease-out 6s" }}>⭐</div>
+              <div style={{ position: "absolute", left: "0", top: "0", fontSize: "32px", opacity: 0, animation: "sparkleBurst13 0.95s ease-out 6s" }}>⭐</div>
+              <div style={{ position: "absolute", left: "0", top: "0", fontSize: "62px", opacity: 0, animation: "sparkleBurst14 3.3s ease-out 6s" }}>⭐</div>
+              <div style={{ position: "absolute", left: "0", top: "0", fontSize: "44px", opacity: 0, animation: "sparkleBurst15 1.5s ease-out 6s" }}>⭐</div>
+              <div style={{ position: "absolute", left: "0", top: "0", fontSize: "85px", opacity: 0, animation: "sparkleBurst16 2.2s ease-out 6s" }}>⭐</div>
+              <div style={{ position: "absolute", left: "0", top: "0", fontSize: "38px", opacity: 0, animation: "sparkleBurst17 3.6s ease-out 6s" }}>⭐</div>
+              <div style={{ position: "absolute", left: "0", top: "0", fontSize: "70px", opacity: 0, animation: "sparkleBurst18 1.0s ease-out 6s" }}>⭐</div>
+              <div style={{ position: "absolute", left: "0", top: "0", fontSize: "40px", opacity: 0, animation: "sparkleBurst19 2.9s ease-out 6s" }}>⭐</div>
             </div>
           )}
 
           {/* CSS Animations */}
           <style>{`
-            /* Sparkle burst animations */
-            @keyframes sparkleBurst0  { 0% { transform: translate(0, 0) rotate(0deg) scale(0); opacity: 0; } 1% { opacity: 1; } 50% { opacity: 1; } 100% { transform: translate(300px, 0px) rotate(720deg) scale(1.5); opacity: 0; } }
-            @keyframes sparkleBurst1  { 0% { transform: translate(0, 0) rotate(0deg) scale(0); opacity: 0; } 1% { opacity: 1; } 50% { opacity: 1; } 100% { transform: translate(285px, 95px) rotate(750deg) scale(1.6); opacity: 0; } }
-            @keyframes sparkleBurst2  { 0% { transform: translate(0, 0) rotate(0deg) scale(0); opacity: 0; } 1% { opacity: 1; } 50% { opacity: 1; } 100% { transform: translate(235px, 180px) rotate(680deg) scale(1.4); opacity: 0; } }
-            @keyframes sparkleBurst3  { 0% { transform: translate(0, 0) rotate(0deg) scale(0); opacity: 0; } 1% { opacity: 1; } 50% { opacity: 1; } 100% { transform: translate(155px, 255px) rotate(810deg) scale(1.7); opacity: 0; } }
-            @keyframes sparkleBurst4  { 0% { transform: translate(0, 0) rotate(0deg) scale(0); opacity: 0; } 1% { opacity: 1; } 50% { opacity: 1; } 100% { transform: translate(50px, 295px) rotate(740deg) scale(1.5); opacity: 0; } }
-            @keyframes sparkleBurst5  { 0% { transform: translate(0, 0) rotate(0deg) scale(0); opacity: 0; } 1% { opacity: 1; } 50% { opacity: 1; } 100% { transform: translate(-60px, 295px) rotate(770deg) scale(1.6); opacity: 0; } }
-            @keyframes sparkleBurst6  { 0% { transform: translate(0, 0) rotate(0deg) scale(0); opacity: 0; } 1% { opacity: 1; } 50% { opacity: 1; } 100% { transform: translate(-165px, 250px) rotate(690deg) scale(1.4); opacity: 0; } }
-            @keyframes sparkleBurst7  { 0% { transform: translate(0, 0) rotate(0deg) scale(0); opacity: 0; } 1% { opacity: 1; } 50% { opacity: 1; } 100% { transform: translate(-245px, 175px) rotate(800deg) scale(1.7); opacity: 0; } }
-            @keyframes sparkleBurst8  { 0% { transform: translate(0, 0) rotate(0deg) scale(0); opacity: 0; } 1% { opacity: 1; } 50% { opacity: 1; } 100% { transform: translate(-290px, 85px) rotate(720deg) scale(1.5); opacity: 0; } }
-            @keyframes sparkleBurst9  { 0% { transform: translate(0, 0) rotate(0deg) scale(0); opacity: 0; } 1% { opacity: 1; } 50% { opacity: 1; } 100% { transform: translate(-300px, -10px) rotate(760deg) scale(1.6); opacity: 0; } }
-            @keyframes sparkleBurst10 { 0% { transform: translate(0, 0) rotate(0deg) scale(0); opacity: 0; } 1% { opacity: 1; } 50% { opacity: 1; } 100% { transform: translate(-285px, -105px) rotate(700deg) scale(1.4); opacity: 0; } }
-            @keyframes sparkleBurst11 { 0% { transform: translate(0, 0) rotate(0deg) scale(0); opacity: 0; } 1% { opacity: 1; } 50% { opacity: 1; } 100% { transform: translate(-230px, -190px) rotate(790deg) scale(1.7); opacity: 0; } }
-            @keyframes sparkleBurst12 { 0% { transform: translate(0, 0) rotate(0deg) scale(0); opacity: 0; } 1% { opacity: 1; } 50% { opacity: 1; } 100% { transform: translate(-150px, -260px) rotate(730deg) scale(1.5); opacity: 0; } }
-            @keyframes sparkleBurst13 { 0% { transform: translate(0, 0) rotate(0deg) scale(0); opacity: 0; } 1% { opacity: 1; } 50% { opacity: 1; } 100% { transform: translate(-45px, -300px) rotate(770deg) scale(1.6); opacity: 0; } }
-            @keyframes sparkleBurst14 { 0% { transform: translate(0, 0) rotate(0deg) scale(0); opacity: 0; } 1% { opacity: 1; } 50% { opacity: 1; } 100% { transform: translate(65px, -295px) rotate(690deg) scale(1.4); opacity: 0; } }
-            @keyframes sparkleBurst15 { 0% { transform: translate(0, 0) rotate(0deg) scale(0); opacity: 0; } 1% { opacity: 1; } 50% { opacity: 1; } 100% { transform: translate(170px, -245px) rotate(800deg) scale(1.7); opacity: 0; } }
-            @keyframes sparkleBurst16 { 0% { transform: translate(0, 0) rotate(0deg) scale(0); opacity: 0; } 1% { opacity: 1; } 50% { opacity: 1; } 100% { transform: translate(250px, -170px) rotate(720deg) scale(1.5); opacity: 0; } }
-            @keyframes sparkleBurst17 { 0% { transform: translate(0, 0) rotate(0deg) scale(0); opacity: 0; } 1% { opacity: 1; } 50% { opacity: 1; } 100% { transform: translate(295px, -80px) rotate(760deg) scale(1.6); opacity: 0; } }
-            @keyframes sparkleBurst18 { 0% { transform: translate(0, 0) rotate(0deg) scale(0); opacity: 0; } 1% { opacity: 1; } 50% { opacity: 1; } 100% { transform: translate(300px, 15px) rotate(700deg) scale(1.4); opacity: 0; } }
-            @keyframes sparkleBurst19 { 0% { transform: translate(0, 0) rotate(0deg) scale(0); opacity: 0; } 1% { opacity: 1; } 50% { opacity: 1; } 100% { transform: translate(290px, 100px) rotate(790deg) scale(1.7); opacity: 0; } }
+            /* Sparkle burst animations - varied sizes, speeds, huge stars fade faster */
+            @keyframes sparkleBurst0  { 0% { transform: translate(0, 0) rotate(0deg) scale(0.2); opacity: 0; } 1% { opacity: 1; } 45% { opacity: 1; } 100% { transform: translate(320px, -15px) rotate(840deg) scale(1.8); opacity: 0; } }
+            @keyframes sparkleBurst1  { 0% { transform: translate(0, 0) rotate(0deg) scale(0.3); opacity: 0; } 1% { opacity: 0.6; } 25% { opacity: 0.6; } 100% { transform: translate(265px, 110px) rotate(620deg) scale(2.5); opacity: 0; } }
+            @keyframes sparkleBurst2  { 0% { transform: translate(0, 0) rotate(0deg) scale(0.1); opacity: 0; } 1% { opacity: 1; } 35% { opacity: 1; } 100% { transform: translate(195px, 215px) rotate(920deg) scale(2.1); opacity: 0; } }
+            @keyframes sparkleBurst3  { 0% { transform: translate(0, 0) rotate(0deg) scale(0.25); opacity: 0; } 1% { opacity: 1; } 52% { opacity: 1; } 100% { transform: translate(115px, 280px) rotate(710deg) scale(1.5); opacity: 0; } }
+            @keyframes sparkleBurst4  { 0% { transform: translate(0, 0) rotate(0deg) scale(0.15); opacity: 0; } 1% { opacity: 0.5; } 20% { opacity: 0.5; } 100% { transform: translate(25px, 315px) rotate(865deg) scale(3.2); opacity: 0; } }
+            @keyframes sparkleBurst5  { 0% { transform: translate(0, 0) rotate(0deg) scale(0.35); opacity: 0; } 1% { opacity: 1; } 47% { opacity: 1; } 100% { transform: translate(-85px, 285px) rotate(590deg) scale(1.2); opacity: 0; } }
+            @keyframes sparkleBurst6  { 0% { transform: translate(0, 0) rotate(0deg) scale(0.2); opacity: 0; } 1% { opacity: 1; } 38% { opacity: 1; } 100% { transform: translate(-195px, 235px) rotate(780deg) scale(1.7); opacity: 0; } }
+            @keyframes sparkleBurst7  { 0% { transform: translate(0, 0) rotate(0deg) scale(0.25); opacity: 0; } 1% { opacity: 0.65; } 28% { opacity: 0.65; } 100% { transform: translate(-270px, 155px) rotate(650deg) scale(2.8); opacity: 0; } }
+            @keyframes sparkleBurst8  { 0% { transform: translate(0, 0) rotate(0deg) scale(0.3); opacity: 0; } 1% { opacity: 1; } 40% { opacity: 1; } 100% { transform: translate(-310px, 55px) rotate(890deg) scale(2.0); opacity: 0; } }
+            @keyframes sparkleBurst9  { 0% { transform: translate(0, 0) rotate(0deg) scale(0.15); opacity: 0; } 1% { opacity: 0.55; } 22% { opacity: 0.55; } 100% { transform: translate(-295px, -40px) rotate(735deg) scale(3.0); opacity: 0; } }
+            @keyframes sparkleBurst10 { 0% { transform: translate(0, 0) rotate(0deg) scale(0.2); opacity: 0; } 1% { opacity: 1; } 54% { opacity: 1; } 100% { transform: translate(-265px, -135px) rotate(810deg) scale(1.3); opacity: 0; } }
+            @keyframes sparkleBurst11 { 0% { transform: translate(0, 0) rotate(0deg) scale(0.3); opacity: 0; } 1% { opacity: 1; } 42% { opacity: 1; } 100% { transform: translate(-205px, -220px) rotate(670deg) scale(1.8); opacity: 0; } }
+            @keyframes sparkleBurst12 { 0% { transform: translate(0, 0) rotate(0deg) scale(0.25); opacity: 0; } 1% { opacity: 0.6; } 24% { opacity: 0.6; } 100% { transform: translate(-120px, -285px) rotate(940deg) scale(3.4); opacity: 0; } }
+            @keyframes sparkleBurst13 { 0% { transform: translate(0, 0) rotate(0deg) scale(0.1); opacity: 0; } 1% { opacity: 1; } 36% { opacity: 1; } 100% { transform: translate(-20px, -320px) rotate(690deg) scale(2.2); opacity: 0; } }
+            @keyframes sparkleBurst14 { 0% { transform: translate(0, 0) rotate(0deg) scale(0.35); opacity: 0; } 1% { opacity: 0.7; } 30% { opacity: 0.7; } 100% { transform: translate(95px, -310px) rotate(820deg) scale(2.6); opacity: 0; } }
+            @keyframes sparkleBurst15 { 0% { transform: translate(0, 0) rotate(0deg) scale(0.2); opacity: 0; } 1% { opacity: 1; } 48% { opacity: 1; } 100% { transform: translate(185px, -265px) rotate(610deg) scale(1.6); opacity: 0; } }
+            @keyframes sparkleBurst16 { 0% { transform: translate(0, 0) rotate(0deg) scale(0.15); opacity: 0; } 1% { opacity: 0.55; } 26% { opacity: 0.55; } 100% { transform: translate(275px, -190px) rotate(880deg) scale(3.1); opacity: 0; } }
+            @keyframes sparkleBurst17 { 0% { transform: translate(0, 0) rotate(0deg) scale(0.25); opacity: 0; } 1% { opacity: 1; } 51% { opacity: 1; } 100% { transform: translate(310px, -105px) rotate(640deg) scale(1.3); opacity: 0; } }
+            @keyframes sparkleBurst18 { 0% { transform: translate(0, 0) rotate(0deg) scale(0.3); opacity: 0; } 1% { opacity: 0.6; } 32% { opacity: 0.6; } 100% { transform: translate(315px, 35px) rotate(760deg) scale(2.9); opacity: 0; } }
+            @keyframes sparkleBurst19 { 0% { transform: translate(0, 0) rotate(0deg) scale(0.2); opacity: 0; } 1% { opacity: 1; } 50% { opacity: 1; } 100% { transform: translate(280px, 125px) rotate(900deg) scale(2.0); opacity: 0; } }
 
             @keyframes slotSpin1 {
               0% {
