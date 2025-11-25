@@ -481,3 +481,156 @@ According to `/community-docs/superstitions/2025-01-23-onclick-handlers-conditio
 2. Restructure to avoid the `Default<>` wrapper (but this requires rethinking initialization)
 3. Find an alternative UI pattern that doesn't require onClick in `.map()`
 4. Ask for help - this may require framework-level understanding
+
+### Session 4 - BREAKTHROUGH: onClick Handler Parameter Pattern (2025-01-24)
+**🎉 UNBLOCKED Phase 2!**
+
+After extensive investigation spanning multiple sessions, discovered the solution to accessing Cells inside `.map()` contexts:
+
+**✅ SOLUTION: Pass Cells as handler parameters, not closure variables**
+
+```typescript
+// ❌ DON'T: Capture Cell from closure inside .map()
+{options.map((option) => (
+  <div onClick={() => {
+    selection.set({ value: option.name });  // selection is unwrapped to plain object!
+  }}>
+))}
+
+// ✅ DO: Pass Cell as handler parameter
+const selectOption = handler<unknown, { name: string, selectionCell: Cell<SelectionState> }>(
+  (_, { name, selectionCell }) => {
+    selectionCell.set({ value: name });  // ✅ Works! Cell methods intact
+  }
+);
+
+{options.map((option) => (
+  <div onClick={selectOption({ name: option.name, selectionCell: selection })}>
+))}
+```
+
+**Root Cause Identified:**
+- Inside `.map()` contexts, Cells captured from closure get **unwrapped** to plain values
+- This happens to BOTH `Default<object>` and `Default<primitive>` wrapped Cells
+- Cell methods (`.set()`, `.get()`, `.key()`) are lost on the unwrapped values
+- Even saving a reference before `.map()` doesn't help - it still gets unwrapped in the closure
+
+**Why Handler Parameters Work:**
+- Handler parameters are evaluated at invocation time, not definition time
+- The framework passes Cells through to handlers WITHOUT unwrapping them
+- Cell methods remain intact when passed as parameters
+
+**Key Discovery Process:**
+1. Wrapped primitive in object (`SelectionState { value: string | null }`) to avoid null issues
+2. Debugged and found Cell still unwrapped in closure (but not null anymore)
+3. Tried saving reference before `.map()` - didn't help
+4. Discovered handler parameter approach preserves Cell nature
+
+**Testing Confirmation:**
+- ✅ onClick selection works: Clicking options updates selection state
+- ✅ Detail pane appears reactively when option selected
+- ✅ UI shows "Editing: Option 1" correctly
+- ✅ Dimensions appear in detail pane
+- ✅ State persists across page reloads
+
+**Phase 2 Status**: ✅ **COMPLETE** - Core UI working with selection!
+
+**Documented in Community Docs:**
+- Created `/community-docs/superstitions/2025-01-24-pass-cells-as-handler-params-not-closure.md`
+- ⭐⭐⭐ 3-star superstition (critical pattern for dynamic UIs)
+- Comprehensive examples and workarounds documented
+
+**Next Issue to Solve:**
+- Dimension value editing buttons (in detail pane) still have "Cannot create cell link" errors
+- These buttons are inside `derive()` block - likely same root cause but different context
+- Need to apply handler parameter pattern to dimension editing as well
+
+**Next Steps:**
+1. Fix dimension value editing using handler parameter pattern
+2. Complete Phase 3: Dynamic Value Editing
+3. Test full workflow: add options, dimensions, edit values, see scores update
+
+### Session 5 - Dimension Editing Fixed with Handler Parameters (2025-11-24)
+**🎉 Phase 3 COMPLETE: Dynamic Value Editing Working!**
+
+Applied the same "pass Cells as handler parameters" pattern to dimension editing handlers inside `derive()` blocks.
+
+**Problem:**
+- Dimension editing buttons (+/-/category selection) inside detail pane `derive()` block gave "Cannot create cell link" errors
+- Handlers were trying to access `options.get()` and `options.at(i)` from closure
+- Same root cause as Phase 2 onClick issue: Cells accessed from closure in reactive contexts get unwrapped
+
+**Solution:**
+1. Pass `optionsCell` as handler parameter (saved reference before derive block: `const optionsCell = options`)
+2. Updated handlers to receive `optionsCell: Cell<RubricOption[]>` parameter
+3. Changed handlers to use immutable array updates with `.map()` instead of trying to use `.at()` method (which doesn't exist on Cell arrays)
+
+**Handler Pattern:**
+```typescript
+const changeNumericValue = handler<
+  unknown,
+  { optionName: string, dimensionName: string, delta: number, min: number, max: number, optionsCell: Cell<RubricOption[]> }
+>(
+  (_, { optionName, dimensionName, delta, min, max, optionsCell }) => {
+    // Update entire options array immutably
+    const opts = optionsCell.get();
+    const newOpts = opts.map(opt => {
+      if (opt.name !== optionName) return opt;
+      
+      // Find existing value or create new one
+      const existingIndex = opt.values.findIndex(v => v.dimensionName === dimensionName);
+      const currentValue = existingIndex >= 0 ? (opt.values[existingIndex].value as number) : min;
+      const newValue = Math.max(min, Math.min(max, currentValue + delta));
+      
+      // Update values array immutably
+      let newValues;
+      if (existingIndex >= 0) {
+        newValues = opt.values.toSpliced(existingIndex, 1, {
+          dimensionName,
+          value: newValue,
+        });
+      } else {
+        newValues = [...opt.values, { dimensionName, value: newValue }];
+      }
+      
+      return { ...opt, values: newValues };
+    });
+    
+    optionsCell.set(newOpts);
+  }
+);
+```
+
+**Other Fixes:**
+- Changed all `<button>` elements to `<ct-button>` components (framework standard)
+- Removed debug logging (console.log statements)
+
+**Testing Results:**
+- ✅ Numeric dimension +/- buttons work correctly
+- ✅ Values increment/decrement by 10 (configurable delta)
+- ✅ Categorical dimension selection buttons work correctly
+- ✅ Clicking categories updates values
+- ✅ **Scores update reactively** when dimension values change!
+- ✅ UI shows updated values immediately in detail pane
+- ✅ Score calculation works across multiple dimensions (tested with numeric + categorical)
+
+**Key Insight:**
+The "pass Cells as handler parameters" pattern applies to **ALL reactive contexts**, not just `.map()`:
+- ✅ Inside `.map()` contexts
+- ✅ Inside `derive()` blocks
+- ✅ Any context where Cells might get unwrapped from closure
+
+**Phase 3 Status**: ✅ **COMPLETE** - Dynamic value editing fully functional!
+
+**Phases Completed:**
+- ✅ Phase 1: Data Model Validation
+- ✅ Phase 2: Core UI (two-pane layout, selection)
+- ✅ Phase 3: Dynamic Value Editing (numeric + categorical)
+
+**Next Steps:**
+- Phase 4: Manual Ranking (up/down buttons, visual indicators)
+- Phase 5-7: LLM features (extract, optimize, suggest)
+- Phase 8: Polish & testing
+- Add to page-creator launcher pattern
+
+**Commit:** `bc8f116` - Fix dimension editing handlers in smart-rubric by passing Cells as parameters
