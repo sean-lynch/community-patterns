@@ -13,7 +13,7 @@ import {
 /**
  * Smart Rubric - Decision Making Tool
  *
- * Phase 2: Detail Pane with Editable Values
+ * Phase 4: Manual Ranking
  *
  * Tests:
  * - Dynamic dimension lookups with key-value pattern
@@ -21,8 +21,9 @@ import {
  * - Adding/removing dimensions
  * - Changing dimension weights and values
  * - Editing option values for dimensions via detail pane
- * - ct-select for categorical dimensions
- * - ct-input for numeric dimensions
+ * - Manual ranking with up/down buttons
+ * - Visual indicators for manually ranked items
+ * - Reset manual ranks functionality
  */
 
 // ============================================================================
@@ -253,6 +254,64 @@ export default pattern<RubricInput, RubricOutput>(
     );
 
     // ========================================================================
+    // Manual Ranking Handlers
+    // ========================================================================
+
+    const moveOptionUp = handler<
+      unknown,
+      { optionName: string, optionsCell: Cell<RubricOption[]> }
+    >(
+      (_, { optionName, optionsCell }) => {
+        const opts = optionsCell.get();
+        const index = opts.findIndex(opt => opt.name === optionName);
+
+        if (index <= 0) return; // Already at top or not found
+
+        // Create new array with swapped positions
+        const newOpts = [...opts];
+        const temp = newOpts[index - 1];
+        newOpts[index - 1] = { ...newOpts[index], manualRank: index };
+        newOpts[index] = { ...temp, manualRank: index + 1 };
+
+        optionsCell.set(newOpts);
+      }
+    );
+
+    const moveOptionDown = handler<
+      unknown,
+      { optionName: string, optionsCell: Cell<RubricOption[]> }
+    >(
+      (_, { optionName, optionsCell }) => {
+        const opts = optionsCell.get();
+        const index = opts.findIndex(opt => opt.name === optionName);
+
+        if (index < 0 || index >= opts.length - 1) return; // Already at bottom or not found
+
+        // Create new array with swapped positions
+        const newOpts = [...opts];
+        const temp = newOpts[index + 1];
+        newOpts[index + 1] = { ...newOpts[index], manualRank: index + 2 };
+        newOpts[index] = { ...temp, manualRank: index + 1 };
+
+        optionsCell.set(newOpts);
+      }
+    );
+
+    const resetManualRanks = handler<
+      unknown,
+      { optionsCell: Cell<RubricOption[]> }
+    >(
+      (_, { optionsCell }) => {
+        const opts = optionsCell.get();
+        const newOpts = opts.map(opt => ({
+          ...opt,
+          manualRank: null,
+        }));
+        optionsCell.set(newOpts);
+      }
+    );
+
+    // ========================================================================
     // Helper: Get option value for dimension
     // ========================================================================
 
@@ -269,12 +328,12 @@ export default pattern<RubricInput, RubricOutput>(
     // ========================================================================
 
     return {
-      [NAME]: "Smart Rubric (Phase 2)",
+      [NAME]: "Smart Rubric (Phase 4)",
       [UI]: (
         <ct-vstack gap="2" style="padding: 1rem; max-width: 1200px; margin: 0 auto;">
           {/* Header */}
           <div style={{ marginBottom: "1rem" }}>
-            <h2 style={{ margin: "0 0 0.5rem 0" }}>Smart Rubric - Phase 2</h2>
+            <h2 style={{ margin: "0 0 0.5rem 0" }}>Smart Rubric - Phase 4</h2>
             <ct-input $value={title} placeholder="Rubric Title" style="width: 100%;" />
           </div>
 
@@ -282,6 +341,7 @@ export default pattern<RubricInput, RubricOutput>(
           <ct-hstack gap="1" style="margin-bottom: 1rem; padding: 1rem; background: #f5f5f5; border-radius: 4px;">
             <ct-button onClick={addTestOption({ options })}>+ Add Test Option</ct-button>
             <ct-button onClick={addTestDimension({ dimensions })}>+ Add Test Dimension</ct-button>
+            <ct-button onClick={resetManualRanks({ optionsCell })}>Reset Manual Ranks</ct-button>
           </ct-hstack>
 
           {/* Main Layout: Two Panes */}
@@ -329,29 +389,80 @@ export default pattern<RubricInput, RubricOutput>(
                     ({ selected, name }) => selected.value === name
                   );
 
+                  // Check if this option has manual rank set
+                  const hasManualRank = derive(option, (opt) => opt.manualRank !== null);
+
                   return (
                     <div
-                      onClick={selectOption({ name: option.name, selectionCell })}
                       style={{
                         padding: "0.75rem",
                         border: derive(isSelected, (sel) => sel ? "2px solid #007bff" : "1px solid #ddd"),
                         borderRadius: "4px",
                         background: derive(isSelected, (sel) => sel ? "#e7f3ff" : "white"),
-                        cursor: "pointer",
                         transition: "all 0.2s",
                       }}
                     >
-                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                        <span style={{ fontWeight: "bold" }}>
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: "0.5rem" }}>
+                        {/* Up/Down Buttons */}
+                        <div style={{ display: "flex", flexDirection: "column", gap: "2px" }}>
+                          <ct-button
+                            onClick={moveOptionUp({ optionName: option.name, optionsCell })}
+                            style={{
+                              padding: "2px 6px",
+                              fontSize: "0.7em",
+                              minWidth: "24px",
+                              opacity: index === 0 ? "0.3" : "1",
+                            }}
+                          >
+                            ▲
+                          </ct-button>
+                          <ct-button
+                            onClick={moveOptionDown({ optionName: option.name, optionsCell })}
+                            style={{
+                              padding: "2px 6px",
+                              fontSize: "0.7em",
+                              minWidth: "24px",
+                              opacity: index === options.length - 1 ? "0.3" : "1",
+                            }}
+                          >
+                            ▼
+                          </ct-button>
+                        </div>
+
+                        {/* Option Name - Clickable */}
+                        <span
+                          onClick={selectOption({ name: option.name, selectionCell })}
+                          style={{
+                            flex: 1,
+                            fontWeight: "bold",
+                            cursor: "pointer",
+                          }}
+                        >
                           {index + 1}. {optionName}
                         </span>
-                        <span style={{
-                          fontSize: "1.2em",
-                          fontWeight: "bold",
-                          color: "#007bff",
-                        }}>
-                          {derive(score, (s) => s.toFixed(1))}
-                        </span>
+
+                        {/* Score */}
+                        <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+                          <span style={{
+                            fontSize: "1.2em",
+                            fontWeight: "bold",
+                            color: "#007bff",
+                          }}>
+                            {derive(score, (s) => s.toFixed(1))}
+                          </span>
+                          {/* Manual Rank Indicator */}
+                          {derive(hasManualRank, (manual) =>
+                            manual ? (
+                              <span style={{
+                                fontSize: "0.8em",
+                                color: "#ff9800",
+                                fontWeight: "bold",
+                              }} title="Manual ranking applied">
+                                ✋
+                              </span>
+                            ) : null
+                          )}
+                        </div>
                       </div>
                     </div>
                   );
