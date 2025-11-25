@@ -54,24 +54,34 @@ interface RubricOption {
   manualRank: number | null;                     // No Default here
 }
 
+interface SelectionState {
+  value: string | null;
+}
+
 interface RubricInput {
   title: Default<string, "Decision Rubric">;
   options: Default<RubricOption[], []>;
   dimensions: Default<Dimension[], []>;
-  selectedOptionName: Default<string | null, null>;
+  selection: Default<SelectionState, { value: null }>;
+}
+
+interface RubricOutput {
+  title: Cell<string>;
+  options: Cell<RubricOption[]>;
+  dimensions: Cell<Dimension[]>;
+  selection: Cell<SelectionState>;
 }
 
 // ============================================================================
 // Pattern
 // ============================================================================
 
-export default pattern<RubricInput>(
-  (inputs) => {
-    const { title, options, dimensions, selectedOptionName } = inputs;
-
-    // Debug: log what we received
-    console.log("Pattern received inputs:", inputs);
-    console.log("selectedOptionName from inputs:", inputs.selectedOptionName);
+export default pattern<RubricInput, RubricOutput>(
+  ({ title, options, dimensions, selection }) => {
+    // CRITICAL: Save references to Cells BEFORE entering .map() or derive() contexts
+    // Inside .map() and derive(), closures may unwrap Cells to plain values
+    const selectionCell = selection;
+    const optionsCell = options;
 
     // ========================================================================
     // Score Calculation Helper (Per-Option)
@@ -165,90 +175,80 @@ export default pattern<RubricInput>(
       }
     );
 
-    const selectOption = handler<unknown, { name: string }>(
-      (_, { name }) => {
-        console.log("selectOption handler called with name:", name);
-        console.log("About to set selectedOptionName to:", name);
-        selectedOptionName.set(name);
+    const selectOption = handler<unknown, { name: string, selectionCell: Cell<SelectionState> }>(
+      (_, { name, selectionCell }) => {
+        selectionCell.set({ value: name });
       }
     );
 
     const changeCategoricalValue = handler<
       unknown,
-      { optionName: string, dimensionName: string, categoryValue: string }
+      { optionName: string, dimensionName: string, categoryValue: string, optionsCell: Cell<RubricOption[]> }
     >(
-      (_, { optionName, dimensionName, categoryValue }) => {
-        // Look up the option Cell by name (not passed from derive block)
-        const opts = options.get();
-        for (let i = 0; i < opts.length; i++) {
-          const opt = options.at(i);
-          if (opt && opt.get().name === optionName) {
-            const valuesCell = opt.key("values");
-            const currentValues = valuesCell.get();
-            const existingIndex = currentValues.findIndex(
-              (v: OptionValue) => v.dimensionName === dimensionName
-            );
+      (_, { optionName, dimensionName, categoryValue, optionsCell }) => {
+        // Modify the option's values array by updating the entire options array
+        const opts = optionsCell.get();
+        const newOpts = opts.map(opt => {
+          if (opt.name !== optionName) return opt;
 
-            if (existingIndex >= 0) {
-              valuesCell.set(
-                currentValues.toSpliced(existingIndex, 1, {
-                  dimensionName,
-                  value: categoryValue,
-                })
-              );
-            } else {
-              valuesCell.set([
-                ...currentValues,
-                {
-                  dimensionName,
-                  value: categoryValue,
-                }
-              ]);
-            }
-            break;
+          const existingIndex = opt.values.findIndex(
+            (v: OptionValue) => v.dimensionName === dimensionName
+          );
+
+          let newValues;
+          if (existingIndex >= 0) {
+            newValues = opt.values.toSpliced(existingIndex, 1, {
+              dimensionName,
+              value: categoryValue,
+            });
+          } else {
+            newValues = [...opt.values, {
+              dimensionName,
+              value: categoryValue,
+            }];
           }
-        }
+
+          return { ...opt, values: newValues };
+        });
+
+        optionsCell.set(newOpts);
       }
     );
 
     const changeNumericValue = handler<
       unknown,
-      { optionName: string, dimensionName: string, delta: number, min: number, max: number }
+      { optionName: string, dimensionName: string, delta: number, min: number, max: number, optionsCell: Cell<RubricOption[]> }
     >(
-      (_, { optionName, dimensionName, delta, min, max }) => {
-        // Look up the option Cell by name (not passed from derive block)
-        const opts = options.get();
-        for (let i = 0; i < opts.length; i++) {
-          const opt = options.at(i);
-          if (opt && opt.get().name === optionName) {
-            const valuesCell = opt.key("values");
-            const currentValues = valuesCell.get();
-            const existingIndex = currentValues.findIndex(
-              (v: OptionValue) => v.dimensionName === dimensionName
-            );
+      (_, { optionName, dimensionName, delta, min, max, optionsCell }) => {
+        // Modify the option's values array by updating the entire options array
+        const opts = optionsCell.get();
+        const newOpts = opts.map(opt => {
+          if (opt.name !== optionName) return opt;
 
-            const currentValue = existingIndex >= 0 ? (currentValues[existingIndex].value as number) : min;
-            const newValue = Math.max(min, Math.min(max, currentValue + delta));
+          const existingIndex = opt.values.findIndex(
+            (v: OptionValue) => v.dimensionName === dimensionName
+          );
 
-            if (existingIndex >= 0) {
-              valuesCell.set(
-                currentValues.toSpliced(existingIndex, 1, {
-                  dimensionName,
-                  value: newValue,
-                })
-              );
-            } else {
-              valuesCell.set([
-                ...currentValues,
-                {
-                  dimensionName,
-                  value: newValue,
-                }
-              ]);
-            }
-            break;
+          const currentValue = existingIndex >= 0 ? (opt.values[existingIndex].value as number) : min;
+          const newValue = Math.max(min, Math.min(max, currentValue + delta));
+
+          let newValues;
+          if (existingIndex >= 0) {
+            newValues = opt.values.toSpliced(existingIndex, 1, {
+              dimensionName,
+              value: newValue,
+            });
+          } else {
+            newValues = [...opt.values, {
+              dimensionName,
+              value: newValue,
+            }];
           }
-        }
+
+          return { ...opt, values: newValues };
+        });
+
+        optionsCell.set(newOpts);
       }
     );
 
@@ -325,17 +325,13 @@ export default pattern<RubricInput>(
 
                   const optionName = derive(option, (opt) => opt.name);
                   const isSelected = derive(
-                    { selected: selectedOptionName, name: optionName },
-                    ({ selected, name }) => selected === name
+                    { selected: selection, name: optionName },
+                    ({ selected, name }) => selected.value === name
                   );
 
                   return (
                     <div
-                      onClick={() => {
-                        console.log("onClick - accessing inputs.selectedOptionName:", inputs.selectedOptionName);
-                        console.log("option.name:", option.name);
-                        inputs.selectedOptionName.set(option.name);
-                      }}
+                      onClick={selectOption({ name: option.name, selectionCell })}
                       style={{
                         padding: "0.75rem",
                         border: derive(isSelected, (sel) => sel ? "2px solid #007bff" : "1px solid #ddd"),
@@ -369,13 +365,13 @@ export default pattern<RubricInput>(
               style="flex: 1; padding: 1rem; border: 1px solid #ddd; border-radius: 4px; background: #fafafa;"
             >
               {derive(
-                { selectedName: selectedOptionName, opts: options, dims: dimensions },
-                ({ selectedName, opts, dims }) => {
+                { selectedState: selection, opts: options, dims: dimensions },
+                ({ selectedState, opts, dims }) => {
                   // Look up the selected option by name
                   let selectedData = null;
-                  if (selectedName) {
+                  if (selectedState.value) {
                     for (let i = 0; i < opts.length; i++) {
-                      if (opts[i].name === selectedName) {
+                      if (opts[i].name === selectedState.value) {
                         selectedData = opts[i];
                         break;
                       }
@@ -446,11 +442,12 @@ export default pattern<RubricInput>(
                                   dim.categories.length > 0 ? (
                                     <div style={{ fontSize: "0.9em" }}>
                                       {dim.categories.map((cat) => (
-                                        <button
+                                        <ct-button
                                           onClick={changeCategoricalValue({
                                             optionName: selectedData.name,
                                             dimensionName: dim.name,
                                             categoryValue: cat.label,
+                                            optionsCell,
                                           })}
                                           style={{
                                             padding: "0.5rem 0.75rem",
@@ -464,7 +461,7 @@ export default pattern<RubricInput>(
                                           }}
                                         >
                                           {cat.label} ({cat.score} pts)
-                                        </button>
+                                        </ct-button>
                                       ))}
                                     </div>
                                   ) : (
@@ -474,13 +471,14 @@ export default pattern<RubricInput>(
                                   )
                                 ) : (
                                   <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
-                                    <button
+                                    <ct-button
                                       onClick={changeNumericValue({
                                         optionName: selectedData.name,
                                         dimensionName: dim.name,
                                         delta: -10,
                                         min: dim.numericMin,
                                         max: dim.numericMax,
+                                        optionsCell,
                                       })}
                                       style={{
                                         padding: "0.5rem 0.75rem",
@@ -492,7 +490,7 @@ export default pattern<RubricInput>(
                                       }}
                                     >
                                       -
-                                    </button>
+                                    </ct-button>
 
                                     <span style={{
                                       flex: 1,
@@ -503,13 +501,14 @@ export default pattern<RubricInput>(
                                       {currentValue || dim.numericMin}
                                     </span>
 
-                                    <button
+                                    <ct-button
                                       onClick={changeNumericValue({
                                         optionName: selectedData.name,
                                         dimensionName: dim.name,
                                         delta: 10,
                                         min: dim.numericMin,
                                         max: dim.numericMax,
+                                        optionsCell,
                                       })}
                                       style={{
                                         padding: "0.5rem 0.75rem",
@@ -521,7 +520,7 @@ export default pattern<RubricInput>(
                                       }}
                                     >
                                       +
-                                    </button>
+                                    </ct-button>
 
                                     <span style={{ color: "#666", fontSize: "0.85em", whiteSpace: "nowrap" }}>
                                       ({dim.numericMin}-{dim.numericMax})
@@ -602,7 +601,7 @@ export default pattern<RubricInput>(
               {JSON.stringify({
                 optionsCount: options.length,
                 dimensionsCount: dimensions.length,
-                selectedOption: selectedOptionName,
+                selectedOption: selection,
               }, null, 2)}
             </pre>
           </details>
@@ -611,7 +610,7 @@ export default pattern<RubricInput>(
       title,
       options,
       dimensions,
-      selectedOptionName,
+      selection,
     };
   }
 );
