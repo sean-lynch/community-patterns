@@ -438,3 +438,46 @@ According to `/community-docs/superstitions/2025-01-23-onclick-handlers-conditio
 3. May need to file an issue with framework authors about this use case
 
 **Recommendation**: Commit current progress, document the blocker thoroughly, and seek guidance on how to implement clickable list items within CommonTools constraints.
+
+### Session 3 Continuation - Deep Investigation (2025-11-24)
+**Found working example**: `todo-list.tsx` in labs/packages/patterns DOES use onClick inside `.map()` and it works!
+
+**Key discovery**: todo-list.tsx uses inline arrow functions that access Cells from closure:
+```typescript
+{items.map((item) => (
+  <ct-button
+    onClick={() => {
+      const current = items.get();  // Accesses Cell from outer scope
+      // ... works!
+    }}
+  >
+    ×
+  </ct-button>
+))}
+```
+
+**Attempted to replicate in smart-rubric**:
+1. ❌ Inline arrow accessing `selectedOptionName` directly → `selectedOptionName` is null inside onClick
+2. ❌ Saving `selectedOptionName` to local variable `selectedCell` → also becomes null in onClick
+3. ❌ Using `handler()` with name parameter → "Cannot create cell link" opaque cell error
+4. ❌ Restructuring to use `inputs` object → `inputs.selectedOptionName` still null in onClick
+5. ❌ Trying to change interface to use `Cell<>` instead of `Default<>` → won't compile (needs default value)
+
+**Critical finding through debug logging**:
+- At pattern init time: `selectedOptionName` is a valid `Proxy(_CellImpl)` ✅
+- Inside onClick (within `.map()`): `selectedOptionName` is `null` ❌
+- **Even `inputs.selectedOptionName` becomes null inside the onClick**
+
+**The mystery**: Why does `items` work in todo-list but `selectedOptionName` doesn't work in smart-rubric?
+
+**Key difference identified**:
+- todo-list Input interface: `items: Cell<TodoItem[]>` (explicit Cell type)
+- smart-rubric Input interface: `selectedOptionName: Default<string | null, null>` (Default wrapper)
+
+**Hypothesis**: The `Default<>` wrapper may be getting unwrapped or handled differently in reactive contexts compared to explicit `Cell<>` types. When accessed from inside `.map()`, Default-wrapped Cells become null.
+
+**Status**: Still blocked. Need to either:
+1. Find a way to make `Default<>`-wrapped Cells accessible in `.map()` contexts
+2. Restructure to avoid the `Default<>` wrapper (but this requires rethinking initialization)
+3. Find an alternative UI pattern that doesn't require onClick in `.map()`
+4. Ask for help - this may require framework-level understanding

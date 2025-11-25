@@ -66,7 +66,12 @@ interface RubricInput {
 // ============================================================================
 
 export default pattern<RubricInput>(
-  ({ title, options, dimensions, selectedOptionName }) => {
+  (inputs) => {
+    const { title, options, dimensions, selectedOptionName } = inputs;
+
+    // Debug: log what we received
+    console.log("Pattern received inputs:", inputs);
+    console.log("selectedOptionName from inputs:", inputs.selectedOptionName);
 
     // ========================================================================
     // Score Calculation Helper (Per-Option)
@@ -105,16 +110,6 @@ export default pattern<RubricInput>(
     // ========================================================================
     // Handlers
     // ========================================================================
-
-    const selectOption = handler<unknown, { optionIndex: number }>(
-      (_, { optionIndex }) => {
-        // Access Cells from closure, not from parameters
-        const opts = options.get();
-        if (opts[optionIndex]) {
-          selectedOptionName.set(opts[optionIndex].name);
-        }
-      }
-    );
 
     const addTestOption = handler<unknown, { options: Cell<RubricOption[]> }>(
       (_, { options }) => {
@@ -167,6 +162,14 @@ export default pattern<RubricInput>(
       (_, { dimension, delta }) => {
         const current = dimension.key("multiplier").get();
         dimension.key("multiplier").set(Math.max(0.1, current + delta));
+      }
+    );
+
+    const selectOption = handler<unknown, { name: string }>(
+      (_, { name }) => {
+        console.log("selectOption handler called with name:", name);
+        console.log("About to set selectedOptionName to:", name);
+        selectedOptionName.set(name);
       }
     );
 
@@ -328,7 +331,11 @@ export default pattern<RubricInput>(
 
                   return (
                     <div
-                      onClick={selectOption({ optionIndex: index })}
+                      onClick={() => {
+                        console.log("onClick - accessing inputs.selectedOptionName:", inputs.selectedOptionName);
+                        console.log("option.name:", option.name);
+                        inputs.selectedOptionName.set(option.name);
+                      }}
                       style={{
                         padding: "0.75rem",
                         border: derive(isSelected, (sel) => sel ? "2px solid #007bff" : "1px solid #ddd"),
