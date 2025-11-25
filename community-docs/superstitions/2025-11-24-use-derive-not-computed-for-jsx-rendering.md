@@ -201,19 +201,21 @@ The official docs may not explicitly warn that `computed()` shouldn't be used fo
 ```yaml
 topic: jsx-rendering, computed, derive, reactivity, cells
 discovered: 2025-11-24
-confirmed_count: 1
+confirmed_count: 2
 last_confirmed: 2025-11-24
-sessions: [fix-grocery-list-bugs]
+sessions: [fix-grocery-list-bugs, smart-rubric-phase-1]
 related_functions: computed, derive
 related_patterns: Cell, JSX, conditional-rendering
 status: superstition
-stars: ⭐
+stars: ⭐⭐
 ```
 
 ## Guestbook
 
 - ⭐ 2025-11-24 - Fixed weird JSX fragments in store-mapper pattern - Using `computed(() => { return <JSX/> })` showed `[object Object]` in UI. Changed to `derive({ deps }, ({ deps }) => { return <JSX/> })` and JSX renders properly. UI suggestions section now shows clean buttons instead of object representations. (fix-grocery-list-bugs)
 - ❌ 2025-11-25 - Code review shows `derive()` and `computed()` both return `OpaqueRef<T>` via `lift()`. The original fix likely addressed a different issue. Marking as LIKELY WRONG. (update-patterns-for-labs-changes)
+
+- ⭐ 2025-11-24 - **CONFIRMED!** Built smart-rubric pattern with dynamic score calculations. Initially tried calling a function `calculateScore(option)` that accessed `dimensions.get()` inside JSX map - got "Cannot create cell link: space is required" error. Tried using `dimensions.forEach()` directly - same error. **Solution:** Used `derive({ option, dims: dimensions }, ({ option, dims }) => { /* calculate score */ })` inline in the map. Works perfectly! Scores are now reactive and update when dimension weights change. This pattern matches what store-mapper.tsx does extensively. (smart-rubric-phase-1)
 
 ---
 
