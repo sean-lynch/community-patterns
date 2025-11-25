@@ -1,7 +1,6 @@
 /// <cts-enable />
 import {
   Cell,
-  cell,
   computed,
   Default,
   derive,
@@ -14,7 +13,7 @@ import {
 /**
  * Smart Rubric - Decision Making Tool
  *
- * Phase 4: Manual Ranking
+ * Phase 4: Manual Ranking with Boxing Pattern
  *
  * Tests:
  * - Dynamic dimension lookups with key-value pattern
@@ -22,9 +21,8 @@ import {
  * - Adding/removing dimensions
  * - Changing dimension weights and values
  * - Editing option values for dimensions via detail pane
- * - Manual ranking with up/down buttons
- * - Visual indicators for manually ranked items
- * - Reset manual ranks functionality
+ * - Manual ranking with up/down buttons using boxing pattern
+ * - Cell.equals() for Cell identity comparison
  */
 
 // ============================================================================
@@ -62,14 +60,14 @@ interface SelectionState {
 
 interface RubricInput {
   title: Default<string, "Decision Rubric">;
-  options: Default<Array<Cell<RubricOption>>, []>;  // Boxed: Array of Cells
+  options: Default<RubricOption[], []>;  // Plain array - framework auto-boxes to Cell<Array<Cell<RubricOption>>>
   dimensions: Default<Dimension[], []>;
   selection: Default<SelectionState, { value: null }>;
 }
 
 interface RubricOutput {
   title: Cell<string>;
-  options: Cell<Array<Cell<RubricOption>>>;  // Boxed: Array of Cells
+  options: Cell<Array<Cell<RubricOption>>>;  // Auto-boxed by framework
   dimensions: Cell<Dimension[]>;
   selection: Cell<SelectionState>;
 }
@@ -125,11 +123,12 @@ export default pattern<RubricInput, RubricOutput>(
 
     const addTestOption = handler<unknown, { options: Cell<Array<Cell<RubricOption>>> }>(
       (_, { options }) => {
-        options.push(cell({
+        // Framework auto-boxes - just push plain object
+        options.push({
           name: `Option ${options.get().length + 1}`,
           values: [],
           manualRank: null,
-        }));
+        });
       }
     );
 
@@ -185,10 +184,14 @@ export default pattern<RubricInput, RubricOutput>(
 
     const changeCategoricalValue = handler<
       unknown,
-      { optionCell: Cell<RubricOption>, dimensionName: string, categoryValue: string }
+      { optionName: string, optionsCell: Cell<Array<Cell<RubricOption>>>, dimensionName: string, categoryValue: string }
     >(
-      (_, { optionCell, dimensionName, categoryValue }) => {
-        // BOXING: Mutate the Cell directly
+      (_, { optionName, optionsCell, dimensionName, categoryValue }) => {
+        // Look up option by name and mutate using .key()
+        const opts = optionsCell.get();
+        const optionCell = opts.find(opt => opt.get().name === optionName);
+        if (!optionCell) return;
+
         const opt = optionCell.get();
         const existingIndex = opt.values.findIndex(
           (v: OptionValue) => v.dimensionName === dimensionName
@@ -213,10 +216,14 @@ export default pattern<RubricInput, RubricOutput>(
 
     const changeNumericValue = handler<
       unknown,
-      { optionCell: Cell<RubricOption>, dimensionName: string, delta: number, min: number, max: number }
+      { optionName: string, optionsCell: Cell<Array<Cell<RubricOption>>>, dimensionName: string, delta: number, min: number, max: number }
     >(
-      (_, { optionCell, dimensionName, delta, min, max }) => {
-        // BOXING: Mutate the Cell directly
+      (_, { optionName, optionsCell, dimensionName, delta, min, max }) => {
+        // Look up option by name and mutate using .key()
+        const opts = optionsCell.get();
+        const optionCell = opts.find(opt => opt.get().name === optionName);
+        if (!optionCell) return;
+
         const opt = optionCell.get();
         const existingIndex = opt.values.findIndex(
           (v: OptionValue) => v.dimensionName === dimensionName
@@ -243,20 +250,21 @@ export default pattern<RubricInput, RubricOutput>(
     );
 
     // ========================================================================
-    // Manual Ranking Handlers
+    // Manual Ranking Handlers - Using .equals() instance method for comparison
     // ========================================================================
 
     const moveOptionUp = handler<
       unknown,
-      { optionName: string, optionsCell: Cell<Array<Cell<RubricOption>>> }
+      { optionCell: Cell<RubricOption>, optionsCell: Cell<Array<Cell<RubricOption>>> }
     >(
-      (_, { optionName, optionsCell }) => {
+      (_, { optionCell, optionsCell }) => {
         const opts = optionsCell.get();
-        const index = opts.findIndex(opt => opt.get().name === optionName);
+        // Use .equals() instance method for proper Cell comparison
+        const index = opts.findIndex(opt => opt.equals(optionCell));
 
         if (index <= 0) return; // Already at top or not found
 
-        // BOXING: Just swap the Cell references, not the objects!
+        // Swap the Cell references in the array
         const newOpts = [...opts];
         [newOpts[index - 1], newOpts[index]] = [newOpts[index], newOpts[index - 1]];
 
@@ -270,15 +278,16 @@ export default pattern<RubricInput, RubricOutput>(
 
     const moveOptionDown = handler<
       unknown,
-      { optionName: string, optionsCell: Cell<Array<Cell<RubricOption>>> }
+      { optionCell: Cell<RubricOption>, optionsCell: Cell<Array<Cell<RubricOption>>> }
     >(
-      (_, { optionName, optionsCell }) => {
+      (_, { optionCell, optionsCell }) => {
         const opts = optionsCell.get();
-        const index = opts.findIndex(opt => opt.get().name === optionName);
+        // Use .equals() instance method for proper Cell comparison
+        const index = opts.findIndex(opt => opt.equals(optionCell));
 
         if (index < 0 || index >= opts.length - 1) return; // Already at bottom or not found
 
-        // BOXING: Just swap the Cell references, not the objects!
+        // Swap the Cell references in the array
         const newOpts = [...opts];
         [newOpts[index], newOpts[index + 1]] = [newOpts[index + 1], newOpts[index]];
 
@@ -296,7 +305,6 @@ export default pattern<RubricInput, RubricOutput>(
     >(
       (_, { optionsCell }) => {
         const opts = optionsCell.get();
-        // BOXING: Update each Cell's manualRank directly
         opts.forEach(opt => {
           opt.key("manualRank").set(null);
         });
@@ -351,14 +359,15 @@ export default pattern<RubricInput, RubricOutput>(
                   No options yet. Add some test data!
                 </div>
               ) : (
-                options.map((option, index) => {
+                // Boxing: optionCell is a Cell<RubricOption>
+                options.map((optionCell, index) => {
                   // Use derive() to reactively compute score
                   const score = derive(
-                    { option, dims: dimensions },
-                    ({ option, dims }: { option: RubricOption; dims: Dimension[] }) => {
+                    { opt: optionCell, dims: dimensions },
+                    ({ opt, dims }: { opt: RubricOption; dims: Dimension[] }) => {
                       let totalScore = 0;
                       dims.forEach((dim: Dimension) => {
-                        const valueRecord = option.values.find((v: OptionValue) => v.dimensionName === dim.name);
+                        const valueRecord = opt.values.find((v: OptionValue) => v.dimensionName === dim.name);
                         if (!valueRecord) return;
 
                         let dimensionScore = 0;
@@ -375,14 +384,12 @@ export default pattern<RubricInput, RubricOutput>(
                     }
                   );
 
-                  const optionName = derive(option, (opt: RubricOption) => opt.name);
+                  const optionName = derive(optionCell, (opt: RubricOption) => opt.name);
                   const isSelected = derive(
                     { selected: selection, name: optionName },
                     ({ selected, name }) => selected.value === name
                   );
-
-                  // Check if this option has manual rank set
-                  const hasManualRank = derive(option, (opt: RubricOption) => opt.manualRank !== null);
+                  const hasManualRank = derive(optionCell, (opt: RubricOption) => opt.manualRank !== null);
 
                   return (
                     <div
@@ -398,7 +405,7 @@ export default pattern<RubricInput, RubricOutput>(
                         {/* Up/Down Buttons */}
                         <div style={{ display: "flex", flexDirection: "column", gap: "2px" }}>
                           <ct-button
-                            onClick={derive(optionName, (name) => moveOptionUp({ optionName: name, optionsCell }))}
+                            onClick={moveOptionUp({ optionCell, optionsCell })}
                             style={{
                               padding: "2px 6px",
                               fontSize: "0.7em",
@@ -409,7 +416,7 @@ export default pattern<RubricInput, RubricOutput>(
                             ▲
                           </ct-button>
                           <ct-button
-                            onClick={derive(optionName, (name) => moveOptionDown({ optionName: name, optionsCell }))}
+                            onClick={moveOptionDown({ optionCell, optionsCell })}
                             style={{
                               padding: "2px 6px",
                               fontSize: "0.7em",
@@ -423,7 +430,7 @@ export default pattern<RubricInput, RubricOutput>(
 
                         {/* Option Name - Clickable */}
                         <span
-                          onClick={derive(optionName, (name) => selectOption({ name, selectionCell }))}
+                          onClick={selectOption({ name: derive(optionCell, (opt: RubricOption) => opt.name), selectionCell })}
                           style={{
                             flex: 1,
                             fontWeight: "bold",
@@ -433,7 +440,7 @@ export default pattern<RubricInput, RubricOutput>(
                           {index + 1}. {optionName}
                         </span>
 
-                        {/* Score */}
+                        {/* Score and Manual Rank Indicator */}
                         <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
                           <span style={{
                             fontSize: "1.2em",
@@ -442,7 +449,6 @@ export default pattern<RubricInput, RubricOutput>(
                           }}>
                             {derive(score, (s) => s.toFixed(1))}
                           </span>
-                          {/* Manual Rank Indicator */}
                           {derive(hasManualRank, (manual) =>
                             manual ? (
                               <span style={{
@@ -470,18 +476,11 @@ export default pattern<RubricInput, RubricOutput>(
               {derive(
                 { selectedState: selection, opts: options, dims: dimensions },
                 ({ selectedState, opts, dims }) => {
-                  // BOXING: Look up the selected option Cell by name
-                  let selectedCell: Cell<RubricOption> | null = null;
-                  if (selectedState.value) {
-                    for (let i = 0; i < opts.length; i++) {
-                      if (opts[i].get().name === selectedState.value) {
-                        selectedCell = opts[i];
-                        break;
-                      }
-                    }
-                  }
-
-                  const selectedData = selectedCell?.get() || null;
+                  // Inside derive(), opts is unwrapped to RubricOption[] (plain objects)
+                  // No .get() needed - access properties directly
+                  const selectedData = selectedState.value
+                    ? opts.find((opt: RubricOption) => opt.name === selectedState.value) || null
+                    : null;
 
                   if (!selectedData) {
                     // Show instructions when no option selected
@@ -507,6 +506,7 @@ export default pattern<RubricInput, RubricOutput>(
                   }
 
                   // Show detail pane for selected option
+                  // Handlers use optionName + optionsCell to look up and mutate
 
                   return (
                     <div>
@@ -549,7 +549,8 @@ export default pattern<RubricInput, RubricOutput>(
                                       {dim.categories.map((cat) => (
                                         <ct-button
                                           onClick={changeCategoricalValue({
-                                            optionCell: selectedCell!,
+                                            optionName: selectedData.name,
+                                            optionsCell,
                                             dimensionName: dim.name,
                                             categoryValue: cat.label,
                                           })}
@@ -577,7 +578,8 @@ export default pattern<RubricInput, RubricOutput>(
                                   <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
                                     <ct-button
                                       onClick={changeNumericValue({
-                                        optionCell: selectedCell!,
+                                        optionName: selectedData.name,
+                                        optionsCell,
                                         dimensionName: dim.name,
                                         delta: -10,
                                         min: dim.numericMin,
@@ -606,7 +608,8 @@ export default pattern<RubricInput, RubricOutput>(
 
                                     <ct-button
                                       onClick={changeNumericValue({
-                                        optionCell: selectedCell!,
+                                        optionName: selectedData.name,
+                                        optionsCell,
                                         dimensionName: dim.name,
                                         delta: 10,
                                         min: dim.numericMin,

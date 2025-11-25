@@ -634,3 +634,503 @@ The "pass Cells as handler parameters" pattern applies to **ALL reactive context
 - Add to page-creator launcher pattern
 
 **Commit:** `bc8f116` - Fix dimension editing handlers in smart-rubric by passing Cells as parameters
+
+### Session 6 - Phase 4: Boxing Pattern Investigation (2025-11-24)
+**Goal**: Implement manual ranking with up/down buttons that preserve Cell identities during reordering
+
+**Inspiration**: shopping-list-launcher.tsx uses "Berni's Boxing Approach" - wrapping items in Cells (`Array<Cell<T>>`) to preserve Cell identities through sorting operations.
+
+#### Why Boxing Was Considered
+In shopping-list-launcher, items are boxed so they can be sorted without losing Cell identity:
+```typescript
+// 1. Box items
+const boxedItems = itemsWithAisles.map(assignment => ({ assignment }));
+
+// 2. Sort boxed items (creates derived view)
+const sortedBoxedItems = derive(boxedItems, (boxed) => {
+  return boxed.slice().sort((a, b) => { /* compare */ });
+});
+
+// 3. Individual items remain reactive
+{group.items.map(({ assignment }) => (
+  <ct-checkbox $checked={assignment.item.done} />  // ✅ Still interactive!
+))}
+```
+
+The hypothesis was that boxing could enable manual ranking by:
+- Preserving Cell identities when swapping array elements
+- Allowing handlers to mutate individual Cell properties using `.key().set()`
+- Avoiding the need to recreate the entire array on each reorder
+
+#### Approach 1: Type Definitions + Basic Boxing ❌
+**Changes:**
+1. Changed `options: Default<RubricOption[], []>` to `options: Default<Array<Cell<RubricOption>>, []>`
+2. Changed `options: Cell<RubricOption[]>` to `options: Cell<Array<Cell<RubricOption>>>`
+3. Updated `addTestOption` to wrap new options in `cell()`:
+   ```typescript
+   options.push(cell({
+     name: `Option ${options.get().length + 1}`,
+     values: [],
+     manualRank: null,
+   }));
+   ```
+
+**Deployment:** Charm `baedreibvosbcgf3qqojjj2wwhoofw227fqznfvi4eq2becri53uegetoqm`
+
+**Result:** ❌ Error: "Cannot read properties of undefined (reading 'name')" when adding options
+
+**Root Cause:** Parameter shadowing in derive block:
+```typescript
+// ❌ Problem: 'option' parameter shadowed outer 'option' Cell variable
+derive({ option, dims: dimensions }, ({ option, dims }) => {
+  // 'option' here is now the unwrapped parameter value, not the outer Cell
+});
+```
+
+**Fix:** Renamed parameter from `option` to `opt`:
+```typescript
+derive({ opt: option, dims: dimensions }, ({ opt, dims }: { opt: RubricOption; dims: Dimension[] }) => {
+  // Now 'opt' is clearly the unwrapped value
+});
+```
+
+#### Approach 2: Handler Parameter Refactoring ❌
+**Problem:** After fixing parameter shadowing, onClick handlers still broken with "Property 'name' does not exist on type 'Cell<RubricOption>'"
+
+**Attempted:**
+```typescript
+onClick={moveOptionUp({ optionName: option.name, optionsCell })}
+// ERROR: Property 'name' does not exist on type 'Cell<RubricOption>'
+```
+
+**Root Cause:** Inside `.map()`, `option` is a Cell object, not a plain RubricOption. Can't access `.name` directly.
+
+**Fix:** Refactored handlers to accept Cells and extract properties inside:
+```typescript
+// Handler accepts Cell
+const selectOption = handler<unknown, { optionCell: Cell<RubricOption>, selectionCell: Cell<SelectionState> }>(
+  (_, { optionCell, selectionCell }) => {
+    const optionName = optionCell.get().name;  // Extract inside handler
+    selectionCell.set({ value: optionName });
+  }
+);
+
+// onClick passes Cell directly
+onClick={selectOption({ optionCell, selectionCell })}
+```
+
+Updated all handlers:
+- `selectOption` - takes `optionCell` parameter
+- `moveOptionUp` - takes `optionCell` and `optionsCell` parameters
+- `moveOptionDown` - takes `optionCell` and `optionsCell` parameters
+
+**Deployment:** Not deployed in this state - proceeded to next approach
+
+#### Approach 3: Boxing Wrapper Inside Derive ❌
+**Inspiration:** shopping-list-launcher wraps items before sorting:
+```typescript
+const boxedItems = itemsWithAisles.map(assignment => ({ assignment }));
+```
+
+**Attempted:** Wrap Cells in objects inside derive block:
+```typescript
+{derive(
+  { opts: options, sel: selection },
+  ({ opts, sel }) => {
+    const boxedOptions = opts.map(opt => ({ optionCell: opt }));
+
+    return boxedOptions.map(({ optionCell }, index) => {
+      // Render with optionCell
+    });
+  }
+)}
+```
+
+**Problem:** Inside derive(), `opts` is already unwrapped to plain objects, not Cells. Creating `{ optionCell: opt }` just wraps plain objects, not Cells.
+
+**Result:** ❌ `optionCell` is a plain object, not a Cell - no Cell methods available
+
+#### Approach 4: Boxing Outside Derive ❌
+**Solution:** Move boxing before derive block, when `options` is still a Cell array:
+```typescript
+// Box BEFORE derive, when options is still a Cell
+const boxedOptions = options.map(opt => ({ optionCell: opt }));
+
+{derive(
+  { boxed: boxedOptions, sel: selection },
+  ({ boxed, sel }) => {
+    return boxed.map(({ optionCell }, index) => {
+      // Now optionCell should be preserved
+    });
+  }
+)}
+```
+
+**Manual Ranking Handlers:**
+```typescript
+const moveOptionUp = handler<
+  unknown,
+  { optionCell: Cell<RubricOption>, optionsCell: Cell<Array<Cell<RubricOption>>> }
+>(
+  (_, { optionCell, optionsCell }) => {
+    const opts = optionsCell.get();
+    const index = opts.findIndex(opt => opt === optionCell);  // Find by Cell identity
+
+    if (index <= 0) return; // Already at top or not found
+
+    // BOXING: Just swap the Cell references!
+    const newOpts = [...opts];
+    [newOpts[index - 1], newOpts[index]] = [newOpts[index], newOpts[index - 1]];
+
+    // Update manualRank on the individual Cells
+    newOpts[index - 1].key("manualRank").set(index);
+    newOpts[index].key("manualRank").set(index + 1);
+
+    optionsCell.set(newOpts);
+  }
+);
+```
+
+**Deployment:** Charm `baedreibe36q5zgzfjink4gbp2g7g6gemxjjkppawkgx4eof5jgnucwvnrm`
+
+**Testing:**
+- ✅ Pattern loads
+- ✅ Options can be added (1, 2, 3)
+- ✅ Up/down buttons render and are clickable
+- ❌ **Clicking up/down doesn't reorder options**
+- ❌ No JavaScript errors in console
+
+**Problem:** Manual ranking not working - options stay in order 1, 2, 3
+
+#### Approach 5: Direct Cell Array Mapping ❌
+**Hypothesis:** Maybe the boxing wrapper `{ optionCell: opt }` is interfering. Try mapping directly over the Cell array.
+
+**Removed boxing wrapper:**
+```typescript
+// No more boxing wrapper - just use options directly
+{derive(
+  { opts: options, sel: selection },
+  ({ opts, sel }) => {
+    if (opts.length === 0) return <div>No options yet</div>;
+
+    return opts.map((opt, index) => {
+      // opt should be unwrapped RubricOption here
+      // But we still pass the ORIGINAL Cell from options array to handlers
+    });
+  }
+)}
+```
+
+**UI code:**
+```typescript
+{options.length === 0 ? (
+  <div>No options yet</div>
+) : (
+  options.map((optionCell, index) => {
+    // optionCell should be a Cell<RubricOption> from the array
+    const score = derive(
+      { opt: optionCell, dims: dimensions },
+      ({ opt, dims }: { opt: RubricOption; dims: Dimension[] }) => {
+        // Calculate score
+      }
+    );
+
+    return (
+      <div>
+        <ct-button onClick={moveOptionUp({ optionCell, optionsCell })}>▲</ct-button>
+        <ct-button onClick={moveOptionDown({ optionCell, optionsCell })}>▼</ct-button>
+        <span>{index + 1}. {optionName}</span>
+      </div>
+    );
+  })
+)}
+```
+
+**Deployment:** Charm `baedreihntnf6xluilixhyoxernm7cg2ohyik5bsylv3oqulme457zv7eqq`
+
+**Testing:**
+- ✅ Options added successfully (1, 2, 3)
+- ✅ Up/down buttons clickable
+- ✅ No JavaScript errors
+- ❌ **Clicking up button on Option 3 doesn't move it** - stays at position 3
+
+**Problem:** Cell identity comparison likely failing:
+```typescript
+const index = opts.findIndex(opt => opt === optionCell);  // Returns -1?
+```
+
+When `optionCell` comes from `.map()` iteration, it may not be the same reference as what's stored in the array.
+
+#### Key Technical Issue: Cell Identity Comparison
+**The Core Problem:**
+```typescript
+// Handler receives optionCell from onClick
+const index = opts.findIndex(opt => opt === optionCell);
+```
+
+This Cell identity check (`opt === optionCell`) doesn't work reliably because:
+1. `optionCell` comes from `.map()` iteration: `options.map((optionCell, index) => {...})`
+2. Inside the handler, `opts` comes from `optionsCell.get()`
+3. The Cell reference from `.map()` may be a different proxy/wrapper than the Cell in the array
+4. Result: `findIndex()` returns `-1`, handler exits early, no reordering happens
+
+#### Why Boxing Works in shopping-list-launcher
+**Critical Difference:**
+
+**shopping-list-launcher:**
+- Original array: `items: Cell<ShoppingItem[]>` (plain objects)
+- Boxing: `const boxedItems = itemsWithAisles.map(assignment => ({ assignment }))`
+- Sorting: Creates a **derived view** with `derive()` that sorts the boxed array
+- **Original array is never modified** - only the displayed order changes
+- No need for Cell identity comparison
+- Handlers use `.key()` to mutate individual Cells in place
+
+**smart-rubric needs:**
+- Original array: `options: Cell<Array<Cell<RubricOption>>>` (boxed)
+- User interaction: Click up/down buttons to reorder
+- Goal: **Actually reorder the original array** by swapping Cell references
+- Requires finding the clicked Cell in the array by identity (`===`)
+- **This identity comparison fails**
+
+**Fundamental mismatch:**
+- Shopping-list: Sort a derived VIEW (original unchanged)
+- Smart-rubric: REORDER the original array (original must change)
+
+#### Console Warnings
+**Persistent warning when adding options:**
+```
+WARN Received unexpected object when value was expected. Attempting to reconcile.
+```
+
+This suggests the framework is receiving something unexpected when setting the boxed array.
+
+#### Attempted Solutions Summary
+
+| Approach | Issue | Result |
+|----------|-------|--------|
+| Basic boxing + type changes | Parameter shadowing in derive | ❌ Compilation error |
+| Handler refactoring | Property access on Cell type | ❌ Type error |
+| Boxing wrapper in derive | Cells already unwrapped in derive | ❌ Boxing plain objects |
+| Boxing wrapper before derive | Cell identity comparison fails | ❌ No reordering |
+| Direct Cell array mapping | Cell reference mismatch | ❌ findIndex returns -1 |
+
+#### Key Insights
+
+1. **Boxing pattern is for sorting derived views, not reordering originals**
+   - Shopping-list creates sorted view with `derive(boxedItems, items => items.sort())`
+   - Smart-rubric needs to actually swap array elements
+
+2. **Cell identity (===) doesn't work reliably**
+   - Cells from `.map()` iteration may be different proxies than stored Cells
+   - Can't use `findIndex(opt => opt === optionCell)` reliably
+
+3. **"unexpected object when value was expected" warning**
+   - Framework may not expect `Array<Cell<T>>` type
+   - Might be treating it differently than plain arrays
+
+4. **Handler parameter pattern still essential**
+   - Must pass Cells as handler parameters (confirmed working)
+   - But Cell identity comparison inside handler fails
+
+#### Recommendations for Phase 4
+
+**Option A: Revert to Plain Array with Index-Based Reordering**
+```typescript
+// Keep original type
+interface RubricInput {
+  options: Default<RubricOption[], []>;  // Plain objects
+}
+
+// Handlers take index, not Cell reference
+const moveOptionUp = handler<unknown, { index: number, optionsCell: Cell<RubricOption[]> }>(
+  (_, { index, optionsCell }) => {
+    if (index <= 0) return;
+
+    const opts = optionsCell.get();
+    const newOpts = [...opts];
+    [newOpts[index - 1], newOpts[index]] = [newOpts[index], newOpts[index - 1]];
+
+    // Update manualRank on swapped objects
+    newOpts[index - 1].manualRank = index;
+    newOpts[index].manualRank = index + 1;
+
+    optionsCell.set(newOpts);
+  }
+);
+
+// Pass index from map
+{options.map((option, index) => (
+  <ct-button onClick={moveOptionUp({ index, optionsCell })}>▲</ct-button>
+))}
+```
+
+**Pros:**
+- Simple and straightforward
+- No Cell identity issues
+- Index is reliable in `.map()` context
+- Proven pattern (used extensively in other patterns)
+
+**Cons:**
+- Recreates entire array on each reorder
+- No per-option Cell preservation
+
+**Option B: Use Name-Based Lookup Instead of Cell Identity**
+```typescript
+const moveOptionUp = handler<unknown, { optionName: string, optionsCell: Cell<Array<Cell<RubricOption>>> }>(
+  (_, { optionName, optionsCell }) => {
+    const opts = optionsCell.get();
+    const index = opts.findIndex(opt => opt.get().name === optionName);  // Lookup by name
+
+    if (index <= 0) return;
+
+    const newOpts = [...opts];
+    [newOpts[index - 1], newOpts[index]] = [newOpts[index], newOpts[index - 1]];
+
+    // Update individual Cells
+    newOpts[index - 1].key("manualRank").set(index);
+    newOpts[index].key("manualRank").set(index + 1);
+
+    optionsCell.set(newOpts);
+  }
+);
+```
+
+**Pros:**
+- Still uses boxing pattern
+- Name lookup is more reliable than Cell identity
+- Can mutate individual Cells
+
+**Cons:**
+- Requires option names to be unique
+- Extra `.get().name` overhead
+
+**Option C: Ask Framework Authors**
+This use case (manually reordering a boxed Cell array) may require framework-level understanding or may reveal a limitation in the current Cell proxy system.
+
+**Recommendation:** **Try Option A first** - plain array with index-based reordering. It's the simplest, most proven approach. Boxing may not be the right pattern for this use case.
+
+#### Phase 4 Status
+🔴 **NOT STARTED** (boxing experiments not committed)
+
+**Next Steps:**
+1. Revert smart-rubric.tsx to Phase 3 completed state (plain object arrays)
+2. Implement manual ranking with Option A (index-based reordering)
+3. Test thoroughly
+4. Document findings about when boxing pattern is appropriate vs. not
+
+### Session 7 - Phase 4 SUCCESS: Boxing with .equals() (2025-11-25)
+**🎉 PHASE 4 COMPLETE: Manual ranking working with boxing pattern!**
+
+#### The Working Solution
+
+**Key Discovery:** The framework auto-boxes array items! You don't need to explicitly use `cell()` when pushing.
+
+**Pattern from `array-in-cell-with-remove-editable.tsx`:**
+```typescript
+// Input uses plain array type
+interface InputSchema {
+  items: Default<Item[], []>;  // Plain array - NOT Array<Cell<Item>>
+}
+
+// Handler types it as boxed (framework auto-boxes)
+const removeItem = handler<
+  unknown,
+  { items: Cell<Array<Cell<Item>>>; item: Cell<Item> }
+>((_event, { items, item }) => {
+  const currentItems = items.get();
+  // Use .equals() INSTANCE METHOD for Cell comparison
+  const index = currentItems.findIndex((el) => el.equals(item));
+  if (index >= 0) {
+    items.set(currentItems.toSpliced(index, 1));
+  }
+});
+
+// In JSX, items are Cells
+{items.map((item, index) => (
+  <ct-button onClick={removeItem({ items, item })}>Remove</ct-button>
+))}
+```
+
+#### Implementation Changes
+
+1. **Input type uses plain array:**
+   ```typescript
+   interface RubricInput {
+     options: Default<RubricOption[], []>;  // Plain array!
+   }
+   ```
+
+2. **Handler type declares boxed Cell array:**
+   ```typescript
+   const moveOptionUp = handler<
+     unknown,
+     { optionCell: Cell<RubricOption>, optionsCell: Cell<Array<Cell<RubricOption>>> }
+   >(
+     (_, { optionCell, optionsCell }) => {
+       const opts = optionsCell.get();
+       // Use .equals() INSTANCE METHOD (not Cell.equals())
+       const index = opts.findIndex(opt => opt.equals(optionCell));
+       // ... swap logic
+     }
+   );
+   ```
+
+3. **Push plain objects (auto-boxed):**
+   ```typescript
+   options.push({
+     name: `Option ${options.get().length + 1}`,
+     values: [],
+     manualRank: null,
+   });
+   ```
+
+4. **Inside derive(), arrays are unwrapped to plain objects:**
+   ```typescript
+   derive({ opts: options }, ({ opts }) => {
+     // opts is RubricOption[] here, NOT Array<Cell<RubricOption>>
+     const found = opts.find(opt => opt.name === "foo");  // Direct property access
+   });
+   ```
+
+5. **Detail pane handlers use name-based lookup:**
+   ```typescript
+   const changeNumericValue = handler<
+     unknown,
+     { optionName: string, optionsCell: Cell<Array<Cell<RubricOption>>>, ... }
+   >(
+     (_, { optionName, optionsCell, ... }) => {
+       const opts = optionsCell.get();
+       const optionCell = opts.find(opt => opt.get().name === optionName);
+       if (!optionCell) return;
+       optionCell.key("values").set(newValues);
+     }
+   );
+   ```
+
+#### Critical Insights
+
+1. **Framework auto-boxes:** `Default<Item[], []>` becomes `Cell<Array<Cell<Item>>>` at runtime
+2. **Use `.equals()` instance method:** `opt.equals(otherCell)` works, `Cell.equals()` static may not
+3. **Derive unwraps to plain values:** Inside derive callback, arrays contain plain objects
+4. **Handlers see Cells:** Inside handlers, `.get()` returns the Cell array with Cell items
+5. **Name-based lookup for detail pane:** Since derive unwraps, use name to find options for mutation
+
+#### Testing Results
+- ✅ Options can be added
+- ✅ Up/down buttons reorder options correctly
+- ✅ Manual rank indicator (✋) appears after reordering
+- ✅ Reset Manual Ranks clears indicators
+- ✅ Selection works (detail pane shows selected option)
+- ✅ Dimension value editing works (scores update reactively)
+
+#### Phase 4 Status: ✅ COMPLETE
+
+**Phases Completed:**
+- ✅ Phase 1: Data Model Validation
+- ✅ Phase 2: Core UI (two-pane layout, selection)
+- ✅ Phase 3: Dynamic Value Editing (numeric + categorical)
+- ✅ Phase 4: Manual Ranking (up/down buttons, boxing pattern)
+
+**Next Steps:**
+- Phase 5-7: LLM features (extract, optimize, suggest)
+- Phase 8: Polish & testing
